@@ -11,7 +11,7 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
-    "@pb/templates": "file:../portfolio-builder-templates",
+    "@pb/templates": "github:darshan260802/portfolio-templates#master",
     "better-auth": "^1.7.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
