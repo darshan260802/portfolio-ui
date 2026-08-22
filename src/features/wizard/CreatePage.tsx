@@ -60,11 +60,12 @@ export function CreatePage() {
 	}, []);
 
 	function updateData(updater: (prev: PortfolioData) => PortfolioData) {
-		setData((prev) => {
-			const next = updater(prev);
-			setDraftData(next);
-			return next;
-		});
+		// setData's updater must stay pure — no side effects inside it, since
+		// React may invoke it more than once. Compute `next` once here
+		// instead, then apply it to both stores as separate, plain calls.
+		const next = updater(data);
+		setData(next);
+		setDraftData(next);
 	}
 
 	async function persist() {
