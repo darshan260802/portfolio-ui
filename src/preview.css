@@ -1,0 +1,21 @@
+/* Deliberately NOT Tailwind here — this document only ever renders a
+   template, and Tailwind's preflight reset would fight with the template's
+   own CSS reset (each template scopes its own reset under its root class).
+   This covers only the iframe's own loading/error chrome. */
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+.preview-message {
+	padding: 2rem;
+	font-family: ui-sans-serif, system-ui, sans-serif;
+	font-size: 0.875rem;
+	color: #6b7280;
+}
+
+.preview-message--error {
+	color: #dc2626;
+}
