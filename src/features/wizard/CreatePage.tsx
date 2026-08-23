@@ -17,6 +17,7 @@ import { ProjectsStep } from "./ProjectsStep";
 import { SkillsStep } from "./SkillsStep";
 import { ReviewStep } from "./ReviewStep";
 import { Button } from "@/components/ui/button";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface ProfileResponse {
@@ -25,6 +26,12 @@ interface ProfileResponse {
 }
 
 type SaveState = "idle" | "saving" | "saved" | "error";
+
+/** One side of a local-vs-account draft conflict (see the effect below). */
+interface DraftCandidate {
+	templateId: string;
+	data: PortfolioData;
+}
 
 const DEVICE_WIDTHS = { desktop: "100%", tablet: "48rem", mobile: "24rem" } as const;
 type DeviceMode = keyof typeof DEVICE_WIDTHS;
@@ -43,6 +50,7 @@ export function CreatePage() {
 	const [templateId, setTemplateId] = useState<string | null>(draftTemplateId);
 	const [data, setData] = useState<PortfolioData>(draftData);
 	const [loaded, setLoaded] = useState(false);
+	const [conflict, setConflict] = useState<{ local: DraftCandidate; server: DraftCandidate } | null>(null);
 	const [stepIndex, setStepIndex] = useState(0);
 	const [direction, setDirection] = useState(1);
 	const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -55,6 +63,25 @@ export function CreatePage() {
 		api
 			.get<ProfileResponse>("/api/me/profile")
 			.then((profile) => {
+				// Both sides have real content, and they disagree — the local
+				// draft could be from a different device/browser than the one
+				// that last saved this account, so silently picking one would
+				// quietly throw the other away. Ask instead of guessing.
+				if (
+					draftTemplateId &&
+					profile.templateId &&
+					hasContent(draftData) &&
+					hasContent(profile.data) &&
+					JSON.stringify(draftData) !== JSON.stringify(profile.data)
+				) {
+					setConflict({
+						local: { templateId: draftTemplateId, data: draftData },
+						server: { templateId: profile.templateId, data: profile.data },
+					});
+					setLoaded(true);
+					return;
+				}
+
 				const resolvedTemplateId = draftTemplateId ?? profile.templateId;
 				if (!resolvedTemplateId) {
 					navigate("/");
@@ -75,6 +102,16 @@ export function CreatePage() {
 		// held at mount time, not a value this effect should re-run on.
 		// oxlint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	function resolveConflict(choice: "local" | "server") {
+		if (!conflict) return;
+		const { templateId: chosenTemplateId, data: chosenData } = conflict[choice];
+		setTemplateId(chosenTemplateId);
+		setData(chosenData);
+		setDraftTemplateId(chosenTemplateId);
+		setDraftData(chosenData);
+		setConflict(null);
+	}
 
 	function updateData(updater: (prev: PortfolioData) => PortfolioData) {
 		// setData's updater must stay pure — no side effects inside it, since
@@ -138,9 +175,47 @@ export function CreatePage() {
 		return set;
 	}, [fieldErrors]);
 
+	if (conflict) {
+		return (
+			<div className="flex h-full flex-col items-center justify-center gap-6 px-6 py-12 text-center">
+				<div className="max-w-md">
+					<h2 className="font-display text-xl font-semibold">Which version do you want to keep?</h2>
+					<p className="mt-1.5 text-sm text-muted-foreground">
+						This device has unsaved changes, and your account already has a saved portfolio. Pick which one to
+						continue editing — the other will be discarded.
+					</p>
+				</div>
+				<div className="grid w-full max-w-xl gap-4 sm:grid-cols-2">
+					<Card className="flex flex-col text-left">
+						<CardHeader>
+							<CardTitle className="text-base">This device</CardTitle>
+							<CardDescription>{conflict.local.data.profile.fullName || "Untitled"} — not yet saved</CardDescription>
+						</CardHeader>
+						<CardFooter className="mt-auto">
+							<Button className="w-full" onClick={() => resolveConflict("local")}>
+								Keep this version
+							</Button>
+						</CardFooter>
+					</Card>
+					<Card className="flex flex-col text-left">
+						<CardHeader>
+							<CardTitle className="text-base">Your account</CardTitle>
+							<CardDescription>{conflict.server.data.profile.fullName || "Untitled"} — saved</CardDescription>
+						</CardHeader>
+						<CardFooter className="mt-auto">
+							<Button variant="outline" className="w-full" onClick={() => resolveConflict("server")}>
+								Use saved portfolio
+							</Button>
+						</CardFooter>
+					</Card>
+				</div>
+			</div>
+		);
+	}
+
 	if (!loaded || !templateId) {
 		return (
-			<div className="flex h-[calc(100svh-4rem)] items-center justify-center gap-2 text-sm text-muted-foreground">
+			<div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
 				<Loader2 className="h-4 w-4 animate-spin" />
 				Loading your portfolio…
 			</div>
@@ -151,7 +226,7 @@ export function CreatePage() {
 	const isLastStep = stepIndex === WIZARD_STEPS.length - 1;
 
 	return (
-		<div className="grid h-[calc(100svh-4rem)] grid-cols-1 lg:grid-cols-2">
+		<div className="grid h-full grid-cols-1 lg:grid-cols-2">
 			<div className="flex h-full flex-col">
 				<div className="border-b border-border/70 px-8 py-5">
 					<WizardStepper

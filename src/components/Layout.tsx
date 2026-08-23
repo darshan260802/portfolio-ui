@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Link, NavLink, useLocation } from "react-router";
 import { Menu, X } from "lucide-react";
@@ -76,6 +76,17 @@ export function Layout({ children }: { children: ReactNode }) {
 	const location = useLocation();
 	const [menuOpen, setMenuOpen] = useState(false);
 	const reducedMotion = usePrefersReducedMotion();
+
+	// react-router's <BrowserRouter> never resets scroll on its own (that's
+	// only what <ScrollRestoration> gives a data router). Without this, a
+	// navigation from a tall page (e.g. a template's detail page) to a
+	// shorter, fixed-height one (e.g. the wizard) leaves the window scrolled
+	// past the new page's content — the new page is fully rendered, just
+	// scrolled out of view, which looks exactly like a blank page until
+	// something (like a resize) forces the browser to re-clamp scrollY.
+	useEffect(() => {
+		window.scrollTo(0, 0);
+	}, [location.pathname]);
 
 	return (
 		<div className="flex min-h-svh flex-col">
@@ -185,7 +196,7 @@ export function Layout({ children }: { children: ReactNode }) {
 					animate={{ opacity: 1, y: 0 }}
 					exit={reducedMotion ? undefined : { opacity: 0, y: -8 }}
 					transition={{ duration: reducedMotion ? 0 : 0.22, ease: "easeOut" }}
-					className="flex-1"
+					className="min-h-0 flex-1"
 				>
 					{children}
 				</motion.main>

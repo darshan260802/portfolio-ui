@@ -133,6 +133,9 @@ body {
    description fields. Deliberately narrow: only the marks/nodes the
    toolbar actually exposes (bold, italic, links, two list types). */
 .rich-text-editor__content {
+	min-height: 6rem;
+	padding: 0.5rem 0.75rem;
+	outline: none;
 	line-height: 1.6;
 }
 

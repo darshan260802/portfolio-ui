@@ -120,10 +120,7 @@ export function RichTextEditor({ value, onChange, placeholder, ariaInvalid, id }
 					<Redo2 className="h-4 w-4" />
 				</ToolbarButton>
 			</div>
-			<EditorContent
-				editor={editor}
-				className="min-h-24 px-3 py-2 text-sm [&_.rich-text-editor__content]:outline-none"
-			/>
+			<EditorContent editor={editor} className="text-sm" />
 		</div>
 	);
 }
