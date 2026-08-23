@@ -13,6 +13,10 @@
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@pb/templates": "github:darshan260802/portfolio-templates#master",
+    "@tiptap/extension-link": "^3.30.2",
+    "@tiptap/extension-placeholder": "^3.30.2",
+    "@tiptap/react": "^3.30.2",
+    "@tiptap/starter-kit": "^3.30.2",
     "better-auth": "^1.7.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,7 +1,7 @@
 import type { Experience, PortfolioData } from "@pb/templates";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FieldError } from "@/components/ui/field-error";
@@ -99,10 +99,11 @@ export function ExperienceStep({ data, onChange, errors = {} }: StepProps) {
 						</div>
 						<div className="flex flex-col gap-1.5">
 							<Label>Summary</Label>
-							<Textarea
+							<RichTextEditor
 								value={item.summary ?? ""}
-								onChange={(e) => update(item.id, { summary: e.target.value })}
-								aria-invalid={Boolean(errors[`experience.${i}.summary`])}
+								onChange={(html) => update(item.id, { summary: html })}
+								placeholder="What did you work on? What impact did it have?"
+								ariaInvalid={Boolean(errors[`experience.${i}.summary`])}
 							/>
 							<FieldError message={errors[`experience.${i}.summary`]} />
 						</div>

@@ -1,7 +1,7 @@
 import type { PortfolioData, Project } from "@pb/templates";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FieldError } from "@/components/ui/field-error";
@@ -50,10 +50,11 @@ export function ProjectsStep({ data, onChange, errors = {} }: StepProps) {
 						</div>
 						<div className="flex flex-col gap-1.5">
 							<Label>Description</Label>
-							<Textarea
+							<RichTextEditor
 								value={item.description ?? ""}
-								onChange={(e) => update(item.id, { description: e.target.value })}
-								aria-invalid={Boolean(errors[`projects.${i}.description`])}
+								onChange={(html) => update(item.id, { description: html })}
+								placeholder="What is it, and what did you build?"
+								ariaInvalid={Boolean(errors[`projects.${i}.description`])}
 							/>
 							<FieldError message={errors[`projects.${i}.description`]} />
 						</div>

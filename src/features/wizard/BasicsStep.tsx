@@ -1,7 +1,7 @@
 import type { PortfolioData, Social } from "@pb/templates";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { X } from "lucide-react";
@@ -91,11 +91,12 @@ export function BasicsStep({ data, onChange, errors = {} }: StepProps) {
 			</div>
 			<div className="flex flex-col gap-1.5">
 				<Label htmlFor="bio">Bio</Label>
-				<Textarea
+				<RichTextEditor
 					id="bio"
 					value={data.profile.bio ?? ""}
-					onChange={(e) => updateProfile("bio", e.target.value)}
-					aria-invalid={Boolean(errors["profile.bio"])}
+					onChange={(html) => updateProfile("bio", html)}
+					placeholder="A couple sentences about what you do and what you're into."
+					ariaInvalid={Boolean(errors["profile.bio"])}
 				/>
 				<FieldError message={errors["profile.bio"]} />
 			</div>

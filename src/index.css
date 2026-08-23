@@ -129,6 +129,45 @@ body {
 	color: var(--muted-foreground);
 }
 
+/* RichTextEditor's editable area — the typography for bio/summary/
+   description fields. Deliberately narrow: only the marks/nodes the
+   toolbar actually exposes (bold, italic, links, two list types). */
+.rich-text-editor__content {
+	line-height: 1.6;
+}
+
+.rich-text-editor__content p {
+	margin: 0 0 0.6em;
+}
+
+.rich-text-editor__content p:last-child {
+	margin-bottom: 0;
+}
+
+.rich-text-editor__content ul,
+.rich-text-editor__content ol {
+	margin: 0 0 0.6em;
+	padding-left: 1.25em;
+}
+
+.rich-text-editor__content li {
+	margin: 0.15em 0;
+}
+
+.rich-text-editor__content a {
+	color: var(--primary);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.rich-text-editor__content p.is-editor-empty:first-child::before {
+	content: attr(data-placeholder);
+	float: left;
+	height: 0;
+	color: var(--muted-foreground);
+	pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
