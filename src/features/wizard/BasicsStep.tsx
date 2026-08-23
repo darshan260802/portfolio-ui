@@ -3,7 +3,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { X } from "lucide-react";
+import type { FieldErrors } from "./validation";
 
 const SOCIAL_PLATFORMS: Social["platform"][] = [
 	"github",
@@ -20,9 +22,10 @@ const SOCIAL_PLATFORMS: Social["platform"][] = [
 interface StepProps {
 	data: PortfolioData;
 	onChange: (updater: (data: PortfolioData) => PortfolioData) => void;
+	errors?: FieldErrors;
 }
 
-export function BasicsStep({ data, onChange }: StepProps) {
+export function BasicsStep({ data, onChange, errors = {} }: StepProps) {
 	const socials = data.socials ?? [];
 
 	function updateProfile<K extends keyof PortfolioData["profile"]>(key: K, value: PortfolioData["profile"][K]) {
@@ -55,8 +58,10 @@ export function BasicsStep({ data, onChange }: StepProps) {
 					id="fullName"
 					value={data.profile.fullName}
 					onChange={(e) => updateProfile("fullName", e.target.value)}
+					aria-invalid={Boolean(errors["profile.fullName"])}
 					required
 				/>
+				<FieldError message={errors["profile.fullName"]} />
 			</div>
 			<div className="flex flex-col gap-1.5">
 				<Label htmlFor="headline">Headline</Label>
@@ -65,7 +70,9 @@ export function BasicsStep({ data, onChange }: StepProps) {
 					placeholder="Senior Frontend Engineer"
 					value={data.profile.headline ?? ""}
 					onChange={(e) => updateProfile("headline", e.target.value)}
+					aria-invalid={Boolean(errors["profile.headline"])}
 				/>
+				<FieldError message={errors["profile.headline"]} />
 			</div>
 			<div className="flex flex-col gap-1.5">
 				<Label htmlFor="bio">Bio</Label>
@@ -73,7 +80,9 @@ export function BasicsStep({ data, onChange }: StepProps) {
 					id="bio"
 					value={data.profile.bio ?? ""}
 					onChange={(e) => updateProfile("bio", e.target.value)}
+					aria-invalid={Boolean(errors["profile.bio"])}
 				/>
+				<FieldError message={errors["profile.bio"]} />
 			</div>
 			<div className="grid grid-cols-2 gap-4">
 				<div className="flex flex-col gap-1.5">
@@ -82,7 +91,9 @@ export function BasicsStep({ data, onChange }: StepProps) {
 						id="location"
 						value={data.profile.location ?? ""}
 						onChange={(e) => updateProfile("location", e.target.value)}
+						aria-invalid={Boolean(errors["profile.location"])}
 					/>
+					<FieldError message={errors["profile.location"]} />
 				</div>
 				<div className="flex flex-col gap-1.5">
 					<Label htmlFor="email">Contact email</Label>
@@ -91,7 +102,9 @@ export function BasicsStep({ data, onChange }: StepProps) {
 						type="email"
 						value={data.profile.email ?? ""}
 						onChange={(e) => updateProfile("email", e.target.value)}
+						aria-invalid={Boolean(errors["profile.email"])}
 					/>
+					<FieldError message={errors["profile.email"]} />
 				</div>
 			</div>
 
@@ -103,26 +116,30 @@ export function BasicsStep({ data, onChange }: StepProps) {
 					</Button>
 				</div>
 				{socials.map((social, i) => (
-					<div key={i} className="flex gap-2">
-						<select
-							className="h-10 rounded-md border border-border bg-card px-2 text-sm capitalize"
-							value={social.platform}
-							onChange={(e) => updateSocial(i, { platform: e.target.value as Social["platform"] })}
-						>
-							{SOCIAL_PLATFORMS.map((p) => (
-								<option key={p} value={p}>
-									{p}
-								</option>
-							))}
-						</select>
-						<Input
-							placeholder="https://…"
-							value={social.url}
-							onChange={(e) => updateSocial(i, { url: e.target.value })}
-						/>
-						<Button type="button" variant="ghost" size="icon" onClick={() => removeSocial(i)}>
-							<X className="h-4 w-4" />
-						</Button>
+					<div key={i} className="flex flex-col gap-1">
+						<div className="flex gap-2">
+							<select
+								className="h-10 rounded-md border border-border bg-card px-2 text-sm capitalize"
+								value={social.platform}
+								onChange={(e) => updateSocial(i, { platform: e.target.value as Social["platform"] })}
+							>
+								{SOCIAL_PLATFORMS.map((p) => (
+									<option key={p} value={p}>
+										{p}
+									</option>
+								))}
+							</select>
+							<Input
+								placeholder="https://…"
+								value={social.url}
+								onChange={(e) => updateSocial(i, { url: e.target.value })}
+								aria-invalid={Boolean(errors[`socials.${i}.url`])}
+							/>
+							<Button type="button" variant="ghost" size="icon" onClick={() => removeSocial(i)}>
+								<X className="h-4 w-4" />
+							</Button>
+						</div>
+						<FieldError message={errors[`socials.${i}.url`]} />
 					</div>
 				))}
 			</div>

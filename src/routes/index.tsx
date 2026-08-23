@@ -11,87 +11,47 @@ import { CreatePage } from "@/features/wizard/CreatePage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 
+/**
+ * Layout wraps the whole route tree exactly once (rather than once per
+ * <Route>, as before) — that's what lets the header/nav/toasts persist
+ * across navigation instead of remounting on every route change, and lets
+ * Layout key its page-transition wrapper on useLocation() internally.
+ */
 export function AppRoutes() {
 	return (
-		<Routes>
-			<Route
-				path="/"
-				element={
-					<Layout>
-						<GalleryPage />
-					</Layout>
-				}
-			/>
-			<Route
-				path="/templates/:id"
-				element={
-					<Layout>
-						<TemplateDetailPage />
-					</Layout>
-				}
-			/>
-			<Route
-				path="/login"
-				element={
-					<Layout>
-						<LoginPage />
-					</Layout>
-				}
-			/>
-			<Route
-				path="/signup"
-				element={
-					<Layout>
-						<SignupPage />
-					</Layout>
-				}
-			/>
-			<Route
-				path="/forgot"
-				element={
-					<Layout>
-						<ForgotPasswordPage />
-					</Layout>
-				}
-			/>
-			<Route
-				path="/reset"
-				element={
-					<Layout>
-						<ResetPasswordPage />
-					</Layout>
-				}
-			/>
-			<Route
-				path="/create"
-				element={
-					<RequireAuth>
-						<Layout>
+		<Layout>
+			<Routes>
+				<Route path="/" element={<GalleryPage />} />
+				<Route path="/templates/:id" element={<TemplateDetailPage />} />
+				<Route path="/login" element={<LoginPage />} />
+				<Route path="/signup" element={<SignupPage />} />
+				<Route path="/forgot" element={<ForgotPasswordPage />} />
+				<Route path="/reset" element={<ResetPasswordPage />} />
+				<Route
+					path="/create"
+					element={
+						<RequireAuth>
 							<CreatePage />
-						</Layout>
-					</RequireAuth>
-				}
-			/>
-			<Route
-				path="/dashboard"
-				element={
-					<RequireAuth>
-						<Layout>
+						</RequireAuth>
+					}
+				/>
+				<Route
+					path="/dashboard"
+					element={
+						<RequireAuth>
 							<DashboardPage />
-						</Layout>
-					</RequireAuth>
-				}
-			/>
-			<Route
-				path="/settings"
-				element={
-					<RequireAuth>
-						<Layout>
+						</RequireAuth>
+					}
+				/>
+				<Route
+					path="/settings"
+					element={
+						<RequireAuth>
 							<SettingsPage />
-						</Layout>
-					</RequireAuth>
-				}
-			/>
-		</Routes>
+						</RequireAuth>
+					}
+				/>
+			</Routes>
+		</Layout>
 	);
 }

@@ -2,14 +2,17 @@ import { useState, type KeyboardEvent } from "react";
 import type { PortfolioData, Skill } from "@pb/templates";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FieldError } from "@/components/ui/field-error";
 import { X } from "lucide-react";
+import type { FieldErrors } from "./validation";
 
 interface StepProps {
 	data: PortfolioData;
 	onChange: (updater: (data: PortfolioData) => PortfolioData) => void;
+	errors?: FieldErrors;
 }
 
-export function SkillsStep({ data, onChange }: StepProps) {
+export function SkillsStep({ data, onChange, errors = {} }: StepProps) {
 	const skills = data.skills ?? [];
 	const [draft, setDraft] = useState("");
 
@@ -32,6 +35,10 @@ export function SkillsStep({ data, onChange }: StepProps) {
 		}
 	}
 
+	// Per-skill errors (e.g. a name over 60 chars) surface as one summary —
+	// the chip list doesn't have room for inline per-field messages.
+	const skillErrors = Object.entries(errors).filter(([key]) => key.startsWith("skills"));
+
 	return (
 		<div className="flex flex-col gap-3">
 			<Label htmlFor="skill-input">Skills</Label>
@@ -41,7 +48,9 @@ export function SkillsStep({ data, onChange }: StepProps) {
 				value={draft}
 				onChange={(e) => setDraft(e.target.value)}
 				onKeyDown={handleKeyDown}
+				aria-invalid={skillErrors.length > 0}
 			/>
+			{skillErrors.length > 0 && <FieldError message={skillErrors[0][1]} />}
 			<div className="flex flex-wrap gap-2">
 				{skills.map((skill) => (
 					<span

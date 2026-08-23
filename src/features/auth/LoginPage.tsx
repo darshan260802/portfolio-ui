@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "./AuthShell";
 
 export function LoginPage() {
 	const [params] = useSearchParams();
@@ -33,11 +34,12 @@ export function LoginPage() {
 	}
 
 	return (
-		<div className="mx-auto flex max-w-sm flex-col gap-6 px-6 py-16">
-			<Card>
+		<AuthShell>
+			<Card className="shadow-lg">
 				<CardHeader>
-					<CardTitle>Log in</CardTitle>
-					<CardDescription>Welcome back.</CardDescription>
+					<span className="build-tag mb-1">Welcome back</span>
+					<CardTitle className="text-2xl">Log in</CardTitle>
+					<CardDescription>Pick up right where you left off.</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
 					<div className="flex flex-col gap-2">
@@ -87,6 +89,6 @@ export function LoginPage() {
 					</div>
 				</CardContent>
 			</Card>
-		</div>
+		</AuthShell>
 	);
 }

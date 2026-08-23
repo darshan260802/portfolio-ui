@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "./AuthShell";
 
 export function ForgotPasswordPage() {
 	const [params] = useSearchParams();
@@ -31,8 +32,8 @@ export function ForgotPasswordPage() {
 	}
 
 	return (
-		<div className="mx-auto flex max-w-sm flex-col gap-6 px-6 py-16">
-			<Card>
+		<AuthShell>
+			<Card className="shadow-lg">
 				<CardHeader>
 					<CardTitle>Reset your password</CardTitle>
 					<CardDescription>We'll email you a reset link.</CardDescription>
@@ -62,6 +63,6 @@ export function ForgotPasswordPage() {
 					)}
 				</CardContent>
 			</Card>
-		</div>
+		</AuthShell>
 	);
 }

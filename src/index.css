@@ -1,50 +1,80 @@
 @import "tailwindcss";
 
+/**
+ * Design direction: "Assembly Canvas" — this is a tool for assembling a
+ * portfolio out of typed data blocks (profile, experience, projects,
+ * skills), so the chrome borrows from a drafting table / blueprint canvas:
+ * a dot-grid working surface (see .bg-grid), panels that feel placed onto
+ * it, and monospace "build tag" labels (STATUS · LIVE, TEMPLATE · AURORA)
+ * for structural metadata. Violet stays the brand primary (it already
+ * matches @pb/templates' Prism accent, #7c5cff — deliberate continuity
+ * between the builder and what it outputs); amber is the one warm accent,
+ * used sparingly for emphasis against the graphite/paper base.
+ */
 @theme {
 	--font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 	--font-display: "Space Grotesk", var(--font-sans);
+	--font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
 :root {
-	--background: oklch(0.99 0.002 285);
-	--foreground: oklch(0.18 0.01 285);
-	--muted: oklch(0.96 0.004 285);
+	--background: oklch(0.984 0.002 95);
+	--foreground: oklch(0.16 0.006 285);
+	--muted: oklch(0.955 0.004 90);
 	--muted-foreground: oklch(0.48 0.01 285);
-	--border: oklch(0.9 0.004 285);
+	--border: oklch(0.9 0.006 90);
 	--card: oklch(1 0 0);
 	--card-foreground: var(--foreground);
-	--primary: oklch(0.52 0.22 292);
+	--primary: oklch(0.56 0.23 292);
 	--primary-foreground: oklch(0.98 0.005 292);
+	--accent: oklch(0.78 0.14 70);
+	--accent-foreground: oklch(0.22 0.03 70);
 	--destructive: oklch(0.58 0.22 27);
 	--destructive-foreground: oklch(0.98 0.005 27);
 	--ring: var(--primary);
 	--radius: 0.75rem;
+
+	--grid-dot: oklch(0.16 0.006 285 / 8%);
+	--shadow-color: oklch(0.16 0.02 285 / 10%);
+	--shadow-sm: 0 1px 2px var(--shadow-color);
+	--shadow-md: 0 4px 16px -4px var(--shadow-color), 0 1px 2px var(--shadow-color);
+	--shadow-lg: 0 16px 48px -12px var(--shadow-color), 0 2px 6px -1px var(--shadow-color);
 }
 
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme="light"]) {
-		--background: oklch(0.15 0.008 285);
-		--foreground: oklch(0.95 0.004 285);
-		--muted: oklch(0.22 0.008 285);
+		--background: oklch(0.145 0.004 285);
+		--foreground: oklch(0.96 0.004 90);
+		--muted: oklch(0.205 0.006 285);
 		--muted-foreground: oklch(0.66 0.01 285);
-		--border: oklch(0.28 0.008 285);
-		--card: oklch(0.19 0.008 285);
+		--border: oklch(0.27 0.008 285);
+		--card: oklch(0.18 0.006 285);
 		--card-foreground: var(--foreground);
 		--primary: oklch(0.72 0.19 292);
 		--primary-foreground: oklch(0.15 0.01 292);
+		--accent: oklch(0.8 0.15 70);
+		--accent-foreground: oklch(0.18 0.03 70);
+
+		--grid-dot: oklch(1 0 0 / 7%);
+		--shadow-color: oklch(0 0 0 / 45%);
 	}
 }
 
 :root[data-theme="dark"] {
-	--background: oklch(0.15 0.008 285);
-	--foreground: oklch(0.95 0.004 285);
-	--muted: oklch(0.22 0.008 285);
+	--background: oklch(0.145 0.004 285);
+	--foreground: oklch(0.96 0.004 90);
+	--muted: oklch(0.205 0.006 285);
 	--muted-foreground: oklch(0.66 0.01 285);
-	--border: oklch(0.28 0.008 285);
-	--card: oklch(0.19 0.008 285);
+	--border: oklch(0.27 0.008 285);
+	--card: oklch(0.18 0.006 285);
 	--card-foreground: var(--foreground);
 	--primary: oklch(0.72 0.19 292);
 	--primary-foreground: oklch(0.15 0.01 292);
+	--accent: oklch(0.8 0.15 70);
+	--accent-foreground: oklch(0.18 0.03 70);
+
+	--grid-dot: oklch(1 0 0 / 7%);
+	--shadow-color: oklch(0 0 0 / 45%);
 }
 
 @theme inline {
@@ -58,12 +88,17 @@
 	--color-card-foreground: var(--card-foreground);
 	--color-primary: var(--primary);
 	--color-primary-foreground: var(--primary-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
 	--color-destructive: var(--destructive);
 	--color-destructive-foreground: var(--destructive-foreground);
 	--color-ring: var(--ring);
 	--radius-lg: var(--radius);
 	--radius-md: calc(var(--radius) - 0.25rem);
 	--radius-sm: calc(var(--radius) - 0.375rem);
+	--shadow-sm: var(--shadow-sm);
+	--shadow-md: var(--shadow-md);
+	--shadow-lg: var(--shadow-lg);
 }
 
 body {
@@ -71,4 +106,36 @@ body {
 	color: var(--foreground);
 	font-family: var(--font-sans);
 	-webkit-font-smoothing: antialiased;
+}
+
+/* The blueprint working surface — used behind heroes and empty states, never
+   as a full-page background (it's a signature accent, not wallpaper). */
+.bg-grid {
+	background-image: radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
+	background-size: 22px 22px;
+}
+
+/* A monospace "build tag" pill — structural metadata (STATUS · LIVE,
+   TEMPLATE · AURORA), not decoration. Used sparingly. */
+.build-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5em;
+	font-family: var(--font-mono);
+	font-size: 0.6875rem;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted-foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
 }

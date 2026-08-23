@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
+import { Mail } from "lucide-react";
 import { signUp, signIn } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "./AuthShell";
 
 export function SignupPage() {
 	const [params] = useSearchParams();
@@ -36,20 +38,29 @@ export function SignupPage() {
 
 	if (verifyEmailSent) {
 		return (
-			<div className="mx-auto flex max-w-sm flex-col gap-4 px-6 py-16 text-center">
-				<h1 className="font-display text-xl font-semibold">Check your email</h1>
-				<p className="text-sm text-muted-foreground">
-					We sent a verification link to {email}. Click it to finish creating your account.
-				</p>
-			</div>
+			<AuthShell>
+				<Card className="shadow-lg">
+					<CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+						<span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+							<Mail className="h-5 w-5" />
+						</span>
+						<h1 className="font-display text-xl font-semibold">Check your email</h1>
+						<p className="text-sm text-muted-foreground">
+							We sent a verification link to <span className="text-foreground">{email}</span>. Click it to
+							finish creating your account.
+						</p>
+					</CardContent>
+				</Card>
+			</AuthShell>
 		);
 	}
 
 	return (
-		<div className="mx-auto flex max-w-sm flex-col gap-6 px-6 py-16">
-			<Card>
+		<AuthShell>
+			<Card className="shadow-lg">
 				<CardHeader>
-					<CardTitle>Create an account</CardTitle>
+					<span className="build-tag mb-1">New account</span>
+					<CardTitle className="text-2xl">Create an account</CardTitle>
 					<CardDescription>Takes about a minute.</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
@@ -103,6 +114,6 @@ export function SignupPage() {
 					</p>
 				</CardContent>
 			</Card>
-		</div>
+		</AuthShell>
 	);
 }
