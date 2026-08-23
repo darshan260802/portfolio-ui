@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 
 export interface Site {
@@ -11,12 +11,21 @@ export interface Site {
 export function useSite() {
 	const [site, setSite] = useState<Site | null | undefined>(undefined);
 
-	useEffect(() => {
-		api
+	const refresh = useCallback(() => {
+		return api
 			.get<{ site: Site | null }>("/api/me/site")
 			.then((res) => setSite(res.site))
 			.catch(() => setSite(null));
 	}, []);
 
-	return site; // undefined = loading, null = no site yet
+	useEffect(() => {
+		void refresh();
+	}, [refresh]);
+
+	// undefined = loading, null = no site yet. `refresh` lets a caller pull
+	// the latest server state after an action that changes it server-side
+	// (e.g. switching templates) — this hook only fetches once on mount
+	// otherwise, so without calling refresh() the UI would keep showing
+	// the pre-change state until a full page reload.
+	return { site, refresh };
 }

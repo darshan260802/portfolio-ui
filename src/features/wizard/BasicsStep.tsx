@@ -6,6 +6,17 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { X } from "lucide-react";
 import type { FieldErrors } from "./validation";
+import { cn } from "@/lib/utils";
+
+// "system" is a valid schema value, but no template actually branches on it
+// differently from unset/light (each template's Template.tsx checks for
+// exactly theme.mode === "dark", nothing else) — offering it here would be
+// a toggle that does nothing distinct, so this only exposes the two modes
+// templates genuinely render differently.
+const THEME_MODES = [
+	{ value: "light", label: "Light" },
+	{ value: "dark", label: "Dark" },
+] as const;
 
 const SOCIAL_PLATFORMS: Social["platform"][] = [
 	"github",
@@ -48,6 +59,10 @@ export function BasicsStep({ data, onChange, errors = {} }: StepProps) {
 
 	function removeSocial(index: number) {
 		onChange((d) => ({ ...d, socials: (d.socials ?? []).filter((_, i) => i !== index) }));
+	}
+
+	function setThemeMode(mode: "light" | "dark") {
+		onChange((d) => ({ ...d, theme: { ...d.theme, mode } }));
 	}
 
 	return (
@@ -142,6 +157,34 @@ export function BasicsStep({ data, onChange, errors = {} }: StepProps) {
 						<FieldError message={errors[`socials.${i}.url`]} />
 					</div>
 				))}
+			</div>
+
+			<div className="flex flex-col gap-1.5">
+				<Label>Appearance</Label>
+				<p className="text-xs text-muted-foreground">
+					Some templates look different in light vs. dark — pick which one yours publishes in.
+				</p>
+				<div className="flex w-fit gap-1 rounded-md border border-border bg-card p-1">
+					{THEME_MODES.map((mode) => {
+						const active = (data.theme?.mode ?? "light") === mode.value;
+						return (
+							<button
+								key={mode.value}
+								type="button"
+								onClick={() => setThemeMode(mode.value)}
+								aria-pressed={active}
+								className={cn(
+									"rounded px-3 py-1.5 text-sm transition-colors",
+									active
+										? "bg-primary text-primary-foreground"
+										: "text-muted-foreground hover:text-foreground",
+								)}
+							>
+								{mode.label}
+							</button>
+						);
+					})}
+				</div>
 			</div>
 		</div>
 	);

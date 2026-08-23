@@ -8,7 +8,7 @@ import { GridCanvas } from "@/components/animated/GridCanvas";
 import { cn } from "@/lib/utils";
 
 export function DashboardPage() {
-	const site = useSite();
+	const { site } = useSite();
 
 	return (
 		<div className="mx-auto max-w-2xl px-6 py-16">

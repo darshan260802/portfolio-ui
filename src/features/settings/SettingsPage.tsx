@@ -18,7 +18,7 @@ import { PORTFOLIO_DOMAIN } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
 export function SettingsPage() {
-	const site = useSite();
+	const { site, refresh: refreshSite } = useSite();
 	const { templates } = useTemplates();
 	const [slugInput, setSlugInput] = useState("");
 	const [renaming, setRenaming] = useState(false);
@@ -40,6 +40,7 @@ export function SettingsPage() {
 			const res = await api.patch<{ slug: string; url?: string }>("/api/me/site/slug", { slug: slugInput });
 			setRenameSuccess(`Renamed to ${res.slug}`);
 			toast.success("Subdomain updated", `Now live at ${res.slug}`);
+			void refreshSite();
 		} catch (err) {
 			const message = formatApiError(err);
 			setRenameError(message);
@@ -52,8 +53,12 @@ export function SettingsPage() {
 	function handleSwitchTemplate(templateId: string) {
 		if (!site) return;
 		// useDeployment toasts on start/poll failure itself (see its jsdoc) —
-		// callers just fire and observe `deployment.status`.
-		void deploy({ slug: site.slug, templateId });
+		// callers just fire and observe `deployment.status`. The server
+		// updates Site.templateId synchronously on accepting the request
+		// (before the build even starts), so refreshing right after also
+		// picks up a failed attempt correctly (no-op — templateId won't have
+		// moved server-side).
+		void deploy({ slug: site.slug, templateId }).then(() => refreshSite());
 	}
 
 	if (site === undefined) {

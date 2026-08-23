@@ -146,7 +146,7 @@
 
     "@oxlint/binding-win32-x64-msvc": ["@oxlint/binding-win32-x64-msvc@1.79.0", "", { "os": "win32", "cpu": "x64" }, "sha512-mEelcCMMBS57sIXh2veGMNy+pQwuGtcMxHxGIZWQ5Ba9pJ5jCCUFOZB9E2JhBaxGsURe+WGe0zJp4RVre52gpQ=="],
 
-    "@pb/templates": ["@pb/templates@github:darshan260802/portfolio-templates#1294820", { "dependencies": { "zod": "^4.1.13" }, "peerDependencies": { "@gsap/react": "^2.1.0", "gsap": "^3.12.0", "motion": "^12.0.0", "react": "^19.2.0", "react-dom": "^19.2.0" } }, "darshan260802-portfolio-templates-1294820", "sha512-QtO9BUerbZZsRO/NhJyEpnwA6143EZA0+h8Vv/a9QmraFdRZF6thRckXjxIoX1drFPW9mRAPvkBhYfw0A5cT4Q=="],
+    "@pb/templates": ["@pb/templates@github:darshan260802/portfolio-templates#7ffad22", { "dependencies": { "zod": "^4.1.13" }, "peerDependencies": { "@gsap/react": "^2.1.0", "gsap": "^3.12.0", "motion": "^12.0.0", "react": "^19.2.0", "react-dom": "^19.2.0" } }, "darshan260802-portfolio-templates-7ffad22", "sha512-HRqItQLIoUkz9OdbNu+OV6dFz27UGMP5eYZ1+xxBdlDSYLGhcEgeylbn4hSkCvpefKQK7JUMPuruKPYHZ6Clfg=="],
 
     "@rolldown/binding-android-arm-eabi": ["@rolldown/binding-android-arm-eabi@1.2.5", "", { "os": "android", "cpu": "arm" }, "sha512-DLe/i+l8ynIBY7XEQ191TeZvCoowIGa18R+dIV30GW7DiOtp74i/xX8hs8GUjW5ARV7VZuie3d6AumSmCwbeRA=="],
 

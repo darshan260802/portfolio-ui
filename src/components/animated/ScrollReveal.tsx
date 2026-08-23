@@ -1,5 +1,5 @@
-import { useRef, type ReactNode } from "react";
-import { gsap, ScrollTrigger, useGSAP, usePrefersReducedMotion } from "@/lib/gsap";
+import { Children, useRef, type ReactNode } from "react";
+import { gsap, ScrollTrigger, useGSAP, usePrefersReducedMotion, isAlreadyInView } from "@/lib/gsap";
 
 interface ScrollRevealProps {
 	children: ReactNode;
@@ -17,18 +17,21 @@ export function ScrollReveal({ children, className, y = 28, delay = 0 }: ScrollR
 	useGSAP(
 		() => {
 			if (reduced || !ref.current) return;
-			gsap.fromTo(
-				ref.current,
-				{ opacity: 0, y },
-				{
-					opacity: 1,
-					y: 0,
-					duration: 0.7,
-					delay,
-					ease: "power3.out",
-					scrollTrigger: { trigger: ref.current, start: "top 88%", once: true },
-				},
-			);
+			const fromVars = { opacity: 0, y };
+			const toVars = { opacity: 1, y: 0, duration: 0.7, delay, ease: "power3.out" as const };
+
+			// Already on screen (common for above-the-fold content, e.g. a
+			// template detail page's info panel) — animate immediately rather
+			// than gating on a ScrollTrigger the user may never cause to fire.
+			if (isAlreadyInView(ref.current, 0.88)) {
+				gsap.fromTo(ref.current, fromVars, toVars);
+				return;
+			}
+
+			gsap.fromTo(ref.current, fromVars, {
+				...toVars,
+				scrollTrigger: { trigger: ref.current, start: "top 88%", once: true },
+			});
 		},
 		{ scope: ref, dependencies: [reduced] },
 	);
@@ -52,26 +55,32 @@ interface StaggerGridProps {
 export function StaggerGrid({ children, className, itemSelector = ":scope > *", stagger = 0.08 }: StaggerGridProps) {
 	const ref = useRef<HTMLDivElement>(null);
 	const reduced = usePrefersReducedMotion();
+	// The items this wraps often arrive asynchronously (e.g. a template list
+	// still loading) — re-run once the actual rendered count changes, not
+	// just once on mount, or the query below can run against zero elements
+	// and never get another chance to animate the real ones.
+	const itemCount = Children.count(children);
 
 	useGSAP(
 		() => {
 			if (reduced || !ref.current) return;
 			const items = ref.current.querySelectorAll(itemSelector);
-			gsap.fromTo(
-				items,
-				{ opacity: 0, y: 24, scale: 0.97 },
-				{
-					opacity: 1,
-					y: 0,
-					scale: 1,
-					duration: 0.6,
-					ease: "power3.out",
-					stagger,
-					scrollTrigger: { trigger: ref.current, start: "top 85%", once: true },
-				},
-			);
+			if (items.length === 0) return;
+
+			const fromVars = { opacity: 0, y: 24, scale: 0.97 };
+			const toVars = { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "power3.out" as const, stagger };
+
+			if (isAlreadyInView(ref.current, 0.85)) {
+				gsap.fromTo(items, fromVars, toVars);
+				return;
+			}
+
+			gsap.fromTo(items, fromVars, {
+				...toVars,
+				scrollTrigger: { trigger: ref.current, start: "top 85%", once: true },
+			});
 		},
-		{ scope: ref, dependencies: [reduced, itemSelector] },
+		{ scope: ref, dependencies: [reduced, itemSelector, itemCount] },
 	);
 
 	return (
