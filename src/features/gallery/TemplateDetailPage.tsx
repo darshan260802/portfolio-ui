@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Star } from "lucide-react";
 import { emptyPortfolioData } from "@pb/templates";
 import { useTemplates } from "./useTemplates";
+import { isFeatured } from "./featured";
 import { PortfolioPreview } from "@/features/preview/PortfolioPreview";
 import { useSite } from "@/features/deploy/useSite";
 import { useDraftStore } from "@/lib/draft-store";
@@ -70,7 +71,15 @@ export function TemplateDetailPage() {
 
 				<ScrollReveal delay={0.1} className="lg:col-span-2">
 					<div className="lg:sticky lg:top-24">
-						<span className="build-tag">Template · {id}</span>
+						<div className="flex flex-wrap items-center gap-3">
+							<span className="build-tag">Template · {id}</span>
+							{isFeatured(id) && (
+								<span className="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
+									<Star className="h-3 w-3 fill-current" aria-hidden />
+									Featured
+								</span>
+							)}
+						</div>
 						<h1 className="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
 							{template?.name ?? "Template"}
 						</h1>
