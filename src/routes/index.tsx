@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from "react-router";
 import { Layout } from "@/components/Layout";
 import { GalleryPage } from "@/features/gallery/GalleryPage";
 import { TemplateDetailPage } from "@/features/gallery/TemplateDetailPage";
+import { AboutPage } from "@/features/about/AboutPage";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { SignupPage } from "@/features/auth/SignupPage";
 import { ForgotPasswordPage } from "@/features/auth/ForgotPasswordPage";
@@ -25,6 +26,7 @@ export function AppRoutes() {
 			<Routes location={location}>
 				<Route path="/" element={<GalleryPage />} />
 				<Route path="/templates/:id" element={<TemplateDetailPage />} />
+				<Route path="/about" element={<AboutPage />} />
 				<Route path="/login" element={<LoginPage />} />
 				<Route path="/signup" element={<SignupPage />} />
 				<Route path="/forgot" element={<ForgotPasswordPage />} />
