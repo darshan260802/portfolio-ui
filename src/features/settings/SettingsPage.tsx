@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Moon, Sun } from "lucide-react";
 import { useTemplates } from "@/features/gallery/useTemplates";
 import { useSite } from "@/features/deploy/useSite";
 import { useSlugCheck } from "@/features/deploy/useSlugCheck";
 import { useDeployment } from "@/features/deploy/useDeployment";
 import { DeploymentTimeline } from "@/features/deploy/DeploymentTimeline";
+import { useAppearance, type ThemeMode } from "./useAppearance";
 import { api } from "@/lib/api";
 import { formatApiError, slugReasonMessage } from "@/lib/api-error";
 import { toast } from "@/lib/toast-store";
@@ -13,13 +14,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TemplateThumbnail } from "@/components/ui/template-thumbnail";
 import { ScrollReveal } from "@/components/animated/ScrollReveal";
 import { PORTFOLIO_DOMAIN } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
+const THEME_MODES: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
+	{ value: "light", label: "Light", icon: Sun },
+	{ value: "dark", label: "Dark", icon: Moon },
+];
+
 export function SettingsPage() {
 	const { site, refresh: refreshSite } = useSite();
 	const { templates } = useTemplates();
+	const { mode, saving: savingMode, save: saveMode } = useAppearance();
 	const [slugInput, setSlugInput] = useState("");
 	const [renaming, setRenaming] = useState(false);
 	const [renameError, setRenameError] = useState<string | null>(null);
@@ -61,6 +69,19 @@ export function SettingsPage() {
 		void deploy({ slug: site.slug, templateId }).then(() => refreshSite());
 	}
 
+	function handleSwitchMode(next: ThemeMode) {
+		if (!site || next === mode) return;
+		// Save first, redeploy only if the save landed: the build reads
+		// theme.mode straight out of the stored profile, so republishing
+		// against an unsaved change would just rebuild the old appearance
+		// and look like the toggle silently did nothing.
+		void saveMode(next).then((ok) => {
+			if (ok) void deploy({ slug: site.slug });
+		});
+	}
+
+	const busy = starting || savingMode;
+
 	if (site === undefined) {
 		return (
 			<div className="flex items-center gap-2 p-16 text-sm text-muted-foreground">
@@ -95,7 +116,7 @@ export function SettingsPage() {
 							<CardContent className="flex flex-col gap-3">
 								<div className="flex flex-col gap-1.5">
 									<Label htmlFor="slug">Subdomain</Label>
-									<div className="flex items-center gap-2">
+									<div className="flex flex-wrap items-center gap-2">
 										<Input
 											id="slug"
 											value={slugInput}
@@ -132,6 +153,56 @@ export function SettingsPage() {
 					<ScrollReveal delay={0.05}>
 						<Card>
 							<CardHeader>
+								<CardTitle>Appearance</CardTitle>
+								<CardDescription>
+									Publish your portfolio in light or dark. Switching rebuilds and republishes it, same as
+									changing the template.
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<div
+									role="group"
+									aria-label="Published appearance"
+									className="flex w-full gap-1 rounded-md border border-border bg-card p-1 sm:w-fit"
+								>
+									{THEME_MODES.map(({ value, label, icon: Icon }) => {
+										const active = mode === value;
+										return (
+											<button
+												key={value}
+												type="button"
+												onClick={() => handleSwitchMode(value)}
+												disabled={busy || mode === undefined}
+												aria-pressed={active}
+												className={cn(
+													"flex flex-1 items-center justify-center gap-2 rounded px-4 py-2 text-sm transition-colors disabled:opacity-60 sm:flex-none",
+													active
+														? "bg-primary text-primary-foreground"
+														: "text-muted-foreground hover:text-foreground",
+												)}
+											>
+												<Icon className="h-4 w-4" />
+												{label}
+											</button>
+										);
+									})}
+								</div>
+								{mode === undefined && (
+									<p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+										<Loader2 className="h-3 w-3 animate-spin" /> Loading current appearance…
+									</p>
+								)}
+								<p className="mt-3 text-xs text-muted-foreground">
+									Some templates are designed light-first and others dark-first, so the same choice looks
+									different across templates.
+								</p>
+							</CardContent>
+						</Card>
+					</ScrollReveal>
+
+					<ScrollReveal delay={0.1}>
+						<Card>
+							<CardHeader>
 								<CardTitle>Template</CardTitle>
 								<CardDescription>Switching rebuilds and republishes your site.</CardDescription>
 							</CardHeader>
@@ -142,7 +213,7 @@ export function SettingsPage() {
 											key={t.id}
 											type="button"
 											onClick={() => handleSwitchTemplate(t.id)}
-											disabled={starting || t.id === site.templateId}
+											disabled={busy || t.id === site.templateId}
 											className={cn(
 												"overflow-hidden rounded-md border text-left text-xs transition-colors",
 												t.id === site.templateId
@@ -150,7 +221,7 @@ export function SettingsPage() {
 													: "border-border hover:border-foreground/30",
 											)}
 										>
-											<img src={t.thumbnail} alt={t.name} className="aspect-video w-full object-cover" />
+											<TemplateThumbnail src={t.thumbnail} alt={t.name} />
 											<div className="p-2 font-medium">{t.name}</div>
 										</button>
 									))}

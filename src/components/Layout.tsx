@@ -9,6 +9,12 @@ import { MagneticButton } from "@/components/animated/MagneticButton";
 import { usePrefersReducedMotion } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
+const PAGE_INITIAL = { opacity: 0, y: 8 } as const;
+const PAGE_ANIMATE = { opacity: 1, y: 0 } as const;
+const PAGE_EXIT = { opacity: 0, y: -8 } as const;
+const PAGE_TRANSITION = { duration: 0.22, ease: "easeOut" } as const;
+const PAGE_TRANSITION_INSTANT = { duration: 0 } as const;
+
 function Logo() {
 	return (
 		<Link to="/" className="group flex items-center gap-2">
@@ -189,13 +195,37 @@ export function Layout({ children }: { children: ReactNode }) {
 				</AnimatePresence>
 			</header>
 
+			{/*
+			 * The page transition. Two things here are load-bearing:
+			 *
+			 * 1. `key={location.pathname}` pairs with `<Routes location={…}>`
+			 *    in routes/index.tsx. AnimatePresence keeps the PREVIOUS
+			 *    <motion.main> element mounted while it animates out, and a
+			 *    React element carries its props from when it was created —
+			 *    so the outgoing copy keeps rendering the page the user is
+			 *    leaving. Without that explicit `location` prop, <Routes>
+			 *    reads the live location and the "outgoing" copy silently
+			 *    renders the INCOMING page instead: mounting it (and, for a
+			 *    guarded route, its RequireAuth session fetch) re-rendered
+			 *    the element mid-exit, motion never reported the exit
+			 *    complete, and the one and only <main> parked at the exit's
+			 *    end state — opacity 0 over fully-rendered content, i.e. a
+			 *    blank page that never recovered, on this and every
+			 *    subsequent navigation.
+			 *
+			 * 2. The prop objects are module constants, not literals rebuilt
+			 *    each render. Layout re-renders on its own (useSession
+			 *    resolving, the mobile menu opening), and handing motion a
+			 *    fresh `animate`/`exit`/`transition` object mid-flight is
+			 *    what restarts an in-progress animation.
+			 */}
 			<AnimatePresence mode="wait" initial={false}>
 				<motion.main
 					key={location.pathname}
-					initial={reducedMotion ? false : { opacity: 0, y: 8 }}
-					animate={{ opacity: 1, y: 0 }}
-					exit={reducedMotion ? undefined : { opacity: 0, y: -8 }}
-					transition={{ duration: reducedMotion ? 0 : 0.22, ease: "easeOut" }}
+					initial={reducedMotion ? false : PAGE_INITIAL}
+					animate={PAGE_ANIMATE}
+					exit={reducedMotion ? undefined : PAGE_EXIT}
+					transition={reducedMotion ? PAGE_TRANSITION_INSTANT : PAGE_TRANSITION}
 					className="min-h-0 flex-1"
 				>
 					{children}

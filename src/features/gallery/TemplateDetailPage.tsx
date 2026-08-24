@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Star } from "lucide-react";
 import { emptyPortfolioData } from "@pb/templates";
 import { useTemplates } from "./useTemplates";
+import { isFeatured } from "./featured";
 import { PortfolioPreview } from "@/features/preview/PortfolioPreview";
+import { useSite } from "@/features/deploy/useSite";
 import { useDraftStore } from "@/lib/draft-store";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MagneticButton } from "@/components/animated/MagneticButton";
 import { ScrollReveal } from "@/components/animated/ScrollReveal";
 
@@ -14,13 +18,28 @@ export function TemplateDetailPage() {
 	const { templates } = useTemplates();
 	const template = templates?.find((t) => t.id === id);
 	const { data: session } = useSession();
+	const { site } = useSite({ enabled: Boolean(session) });
 	const setTemplateId = useDraftStore((s) => s.setTemplateId);
 	const navigate = useNavigate();
+	const [confirmingOverwrite, setConfirmingOverwrite] = useState(false);
 
-	function handleCreate() {
+	function startCreate() {
 		if (!id) return;
 		setTemplateId(id);
 		navigate(session ? "/create" : "/login?next=%2Fcreate");
+	}
+
+	function handleCreate() {
+		if (!id) return;
+		// An account hosts exactly one portfolio, so "create a new one" is
+		// really "replace the one you already have". Silently walking into
+		// the wizard hid that: the only signal was the live site changing
+		// under the user after they published. Ask first.
+		if (site) {
+			setConfirmingOverwrite(true);
+			return;
+		}
+		startCreate();
 	}
 
 	if (!id) return null;
@@ -52,7 +71,15 @@ export function TemplateDetailPage() {
 
 				<ScrollReveal delay={0.1} className="lg:col-span-2">
 					<div className="lg:sticky lg:top-24">
-						<span className="build-tag">Template · {id}</span>
+						<div className="flex flex-wrap items-center gap-3">
+							<span className="build-tag">Template · {id}</span>
+							{isFeatured(id) && (
+								<span className="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
+									<Star className="h-3 w-3 fill-current" aria-hidden />
+									Featured
+								</span>
+							)}
+						</div>
 						<h1 className="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
 							{template?.name ?? "Template"}
 						</h1>
@@ -67,14 +94,70 @@ export function TemplateDetailPage() {
 								</span>
 							))}
 						</div>
-						<MagneticButton className="mt-8 block w-fit">
-							<Button size="lg" onClick={handleCreate}>
-								Create portfolio with this template
+						{/* This label is long enough to exceed a phone's content width on
+						    its own, and buttons are whitespace-nowrap by default — let it
+						    wrap (and grow taller) rather than push the page sideways. */}
+						<MagneticButton className="mt-8 block w-fit max-w-full">
+							<Button
+								size="lg"
+								onClick={handleCreate}
+								className="h-auto max-w-full whitespace-normal px-5 py-3 text-center sm:px-8"
+							>
+								{site ? "Use this template instead" : "Create portfolio with this template"}
 							</Button>
 						</MagneticButton>
+						{site && (
+							<p className="mt-3 text-xs text-muted-foreground">
+								You already have a portfolio
+								{site.url ? ` at ${site.url.replace(/^https?:\/\//, "")}` : ""} — an account can host one at a
+								time.
+							</p>
+						)}
 					</div>
 				</ScrollReveal>
 			</div>
+
+			<ConfirmDialog
+				open={confirmingOverwrite}
+				title="This will replace your existing portfolio"
+				description={
+					<>
+						<p>
+							Your account already has a portfolio
+							{site?.url ? (
+								<>
+									{" "}
+									published at{" "}
+									<a
+										href={site.url}
+										target="_blank"
+										rel="noreferrer"
+										className="font-medium text-foreground underline underline-offset-2"
+									>
+										{site.url.replace(/^https?:\/\//, "")}
+									</a>
+								</>
+							) : (
+								<> using the {site?.templateId} template</>
+							)}
+							. Portfolio Builder hosts one portfolio per account, so publishing with{" "}
+							<span className="font-medium text-foreground">{template?.name ?? id}</span> replaces it at the same
+							address.
+						</p>
+						<p className="mt-2">
+							Your saved content carries over and the current site stays live until you publish again — but the
+							old design won't come back on its own.
+						</p>
+					</>
+				}
+				confirmLabel="Replace it"
+				secondary={{ label: "Edit the existing one", onSelect: () => navigate("/create") }}
+				onConfirm={() => {
+					setConfirmingOverwrite(false);
+					startCreate();
+				}}
+				onCancel={() => setConfirmingOverwrite(false)}
+			/>
 		</div>
 	);
 }

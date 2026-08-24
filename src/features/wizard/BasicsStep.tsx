@@ -100,7 +100,9 @@ export function BasicsStep({ data, onChange, errors = {} }: StepProps) {
 				/>
 				<FieldError message={errors["profile.bio"]} />
 			</div>
-			<div className="grid grid-cols-2 gap-4">
+			{/* One column on phones: three side-by-side inputs at 375px wide
+			    left no room for either the label or the value. */}
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<div className="flex flex-col gap-1.5">
 					<Label htmlFor="location">Location</Label>
 					<Input
@@ -121,6 +123,22 @@ export function BasicsStep({ data, onChange, errors = {} }: StepProps) {
 						aria-invalid={Boolean(errors["profile.email"])}
 					/>
 					<FieldError message={errors["profile.email"]} />
+				</div>
+				<div className="flex flex-col gap-1.5">
+					<Label htmlFor="phone">Phone</Label>
+					{/* type="tel" is what gets phones to show the dial pad
+					    keyboard; autoComplete lets the browser fill it. */}
+					<Input
+						id="phone"
+						type="tel"
+						inputMode="tel"
+						autoComplete="tel"
+						placeholder="+1 555 123 4567"
+						value={data.profile.phone ?? ""}
+						onChange={(e) => updateProfile("phone", e.target.value)}
+						aria-invalid={Boolean(errors["profile.phone"])}
+					/>
+					<FieldError message={errors["profile.phone"]} />
 				</div>
 			</div>
 
