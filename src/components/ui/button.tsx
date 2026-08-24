@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ComponentProps } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
@@ -24,8 +24,14 @@ export const buttonVariants = cva(
 	},
 );
 
+/**
+ * `ComponentProps<"button">` rather than `ButtonHTMLAttributes` — under
+ * React 19 that's what carries `ref`, so a caller that needs the element
+ * (ConfirmDialog focuses its confirm button on open) can pass one straight
+ * through with no forwardRef wrapper.
+ */
 export interface ButtonProps
-	extends ButtonHTMLAttributes<HTMLButtonElement>,
+	extends ComponentProps<"button">,
 		VariantProps<typeof buttonVariants> {}
 
 export function Button({ className, variant, size, ...props }: ButtonProps) {

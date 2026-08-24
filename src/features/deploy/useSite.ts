@@ -8,15 +8,28 @@ export interface Site {
 	url: string | null;
 }
 
-export function useSite() {
+/**
+ * The account's single hosted site (the API enforces one per user — see
+ * portfolio-builder-api's Site.userId unique constraint).
+ *
+ * `enabled: false` skips the request entirely and reports "no site", for
+ * callers on pages a logged-out visitor can reach (the template detail
+ * page). /api/me/site requires auth, so fetching it unconditionally there
+ * would fire a guaranteed 401 on every anonymous page view.
+ */
+export function useSite({ enabled = true }: { enabled?: boolean } = {}) {
 	const [site, setSite] = useState<Site | null | undefined>(undefined);
 
 	const refresh = useCallback(() => {
+		if (!enabled) {
+			setSite(null);
+			return Promise.resolve();
+		}
 		return api
 			.get<{ site: Site | null }>("/api/me/site")
 			.then((res) => setSite(res.site))
 			.catch(() => setSite(null));
-	}, []);
+	}, [enabled]);
 
 	useEffect(() => {
 		void refresh();

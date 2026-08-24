@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useTemplates } from "./useTemplates";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TemplateThumbnail } from "@/components/ui/template-thumbnail";
 import { GridCanvas } from "@/components/animated/GridCanvas";
 import { SplitText } from "@/components/animated/SplitText";
 import { StaggerGrid } from "@/components/animated/ScrollReveal";
@@ -108,14 +109,11 @@ export function GalleryPage() {
 							<TiltCard max={5}>
 								<Card className="h-full overflow-hidden transition-shadow group-hover:shadow-lg">
 									<SpotlightCard>
-										<div className="aspect-video overflow-hidden bg-muted">
-											<img
-												src={template.thumbnail}
-												alt={template.name}
-												className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-												loading="lazy"
-											/>
-										</div>
+										<TemplateThumbnail
+											src={template.thumbnail}
+											alt={template.name}
+											imageClassName="transition-transform duration-500 group-hover:scale-[1.04]"
+										/>
 										<CardHeader className="pt-6">
 											<CardTitle>{template.name}</CardTitle>
 											<CardDescription>{template.description}</CardDescription>

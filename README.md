@@ -66,6 +66,51 @@ a browser — none would have been caught by `tsc`/lint alone:
    `new ZipArchive(options)`, not `archiver('zip', options)`.
 3. The `resolve.dedupe` issue above.
 
+## Cache busting
+
+Vite content-hashes every JS/CSS asset, so those are safe to cache
+forever. `index.html` is the one file that must never be cached — it's
+what maps "the app" onto the current hashed filenames. When something
+serves a stale one anyway (a CDN, a proxy, the browser's own HTTP cache),
+the user keeps running old code with no symptom except bugs that were
+already fixed.
+
+Two halves close that:
+
+1. **Every build is stamped.** `vite.config.ts`'s `buildStamp` plugin puts
+   the same id in two places: a `<meta name="pb-build-id">` in
+   `index.html`, and `version.json` at the web root.
+   `src/lib/version-check.ts` compares them on load, on every return to the
+   tab, and every five minutes; a mismatch means the document came out of a
+   cache, so it clears Cache Storage / service workers and reloads to a
+   one-shot `?pb_v=…` URL. The reload fetches a fresh document, so the two
+   sides necessarily agree afterwards — the check can't loop. (In-progress
+   wizard content lives in localStorage, so a forced reload doesn't lose
+   it.) Set `VITE_BUILD_ID` to pin the stamp to something meaningful, e.g.
+   `VITE_BUILD_ID=$(git rev-parse --short HEAD) bun run build`.
+
+2. **One command to force it.** A normal deploy needs nothing extra — the
+   new build's own id is what makes open tabs reload. When the files are
+   already right but people are still being served an old document, run:
+
+   ```sh
+   bun run cachebust                 # re-stamps ./dist
+   bun run cachebust --dir /srv/app  # or a deployed web root, in place
+   ```
+
+   It rewrites the stamp in `index.html` and `version.json` together, so
+   every cached document mismatches and reloads once. Hashed assets are
+   deliberately untouched — their filenames are their cache keys.
+
+For any of this to work, the server must not cache `index.html` or
+`version.json`. With nginx:
+
+```nginx
+location = /index.html { add_header Cache-Control "no-store"; }
+location = /version.json { add_header Cache-Control "no-store"; }
+location /assets/ { add_header Cache-Control "public, max-age=31536000, immutable"; }
+```
+
 ## Structure
 
 ```

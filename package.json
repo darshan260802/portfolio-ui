@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "cachebust": "bun scripts/cachebust.ts",
     "lint": "oxlint",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit"
