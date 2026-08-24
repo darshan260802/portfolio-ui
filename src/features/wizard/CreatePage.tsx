@@ -124,12 +124,22 @@ export function CreatePage() {
 		if (saveState !== "idle") setSaveState("idle");
 	}
 
-	/** Saves to the server. Returns whether it succeeded — callers use this to decide whether to advance. */
-	async function persist(): Promise<boolean> {
+	/**
+	 * Saves to the server. Returns whether it succeeded — callers use this to
+	 * decide whether to advance.
+	 *
+	 * `override` exists for a caller that has just produced new data and needs
+	 * THAT saved, not what's in state: `setData` doesn't mutate the `data`
+	 * binding this closure captured, so a save triggered in the same tick as a
+	 * change would otherwise persist the value the user just replaced. The
+	 * upload fields' Remove button is the case that needs it — it clears a
+	 * field and saves in one gesture.
+	 */
+	async function persist(override?: PortfolioData): Promise<boolean> {
 		if (!templateId) return false;
 		setSaveState("saving");
 		try {
-			await api.put("/api/me/profile", { templateId, data });
+			await api.put("/api/me/profile", { templateId, data: override ?? data });
 			setSaveState("saved");
 			setFieldErrors({});
 			return true;
@@ -219,7 +229,12 @@ export function CreatePage() {
 							transition={{ duration: 0.22, ease: "easeOut" }}
 						>
 							{currentStep.id === "basics" && (
-								<BasicsStep data={data} onChange={updateData} errors={fieldErrors} />
+								<BasicsStep
+									data={data}
+									onChange={updateData}
+									errors={fieldErrors}
+									onSave={persist}
+								/>
 							)}
 							{currentStep.id === "experience" && (
 								<ExperienceStep data={data} onChange={updateData} errors={fieldErrors} />

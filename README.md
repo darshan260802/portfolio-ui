@@ -44,6 +44,8 @@ templates from
 | **Draft persistence across auth** | The in-progress wizard lives in `localStorage` (Zustand + `persist`). | You can pick a template while logged out, get bounced through OAuth, and land back on `/create` with everything intact. |
 | **Draft-conflict prompt** | Detects when the local draft AND the account both have real, differing content and asks which to keep, showing the two side by side. | Two devices editing the same account no longer silently overwrite each other. Mobile stacks it into one card per version so both "Keep" buttons are reachable. |
 | **Overwrite guard** | Attempting to publish over an existing site (or entering the wizard from a template while a site is already live) opens a confirm dialog naming the current URL. | An account hosts exactly one portfolio; previously the only signal was the live site changing under you. |
+| **Profile photo + résumé upload** | One `UploadField` control backs both. It checks type and size against `@pb/templates`'s `UPLOAD_RULES` — the same object the API enforces — before spending a byte on the network, uploads over XHR for a real progress bar, and lets an in-flight upload be cancelled. Both say plainly that the file will be public on the published portfolio. | These were schema fields (`avatarUrl`, `resumeUrl`) with no way to fill them. Sharing the rules means the picker can't accept a file the server then rejects; `fetch` has no upload-progress event, which is why this one control doesn't use it. |
+| **Removal saves before it deletes** | Clearing a photo or résumé persists the cleared profile first, and only then asks the API to delete the stored file. | The wizard is otherwise local-until-Next. Deleting first would leave a saved profile — and a live site — pointing at a URL that 404s if the user walked away mid-edit. |
 | **Cache buster** | Every build stamps an id into `<meta name="pb-build-id">` and `version.json`. The client polls, compares against the loaded document, and force-reloads on mismatch. `bun run cachebust` rewrites both to force everyone off cache without a rebuild. | Vite hashes assets but a stale `index.html` maps the app onto old filenames — the classic bug where fixes exist but users don't see them. |
 | **Featured badge** | A small star pill sits over any template flagged in `src/features/gallery/featured.ts`. | Editorial highlight for new templates — never bakes into an exported portfolio. |
 | **Consistent thumbnails** | One `TemplateThumbnail` component: every image renders `object-contain` over a blurred, scaled copy of itself. | Some thumbnails are square, some are 16:9; a plain `object-cover` frame silently cropped the square ones and made them read as a different set. |
@@ -251,7 +253,7 @@ src/
   routes/                   route table
   features/
     gallery/    auth/    wizard/    preview/    deploy/    settings/    dashboard/
-  components/ui/            small shadcn-style primitives (Button, Input, Card, ConfirmDialog, TemplateThumbnail, …)
+  components/ui/            small shadcn-style primitives (Button, Input, Card, ConfirmDialog, TemplateThumbnail, UploadField, …)
   lib/                      api.ts, auth-client.ts, draft-store.ts, env.ts, version-check.ts, utils.ts
 scripts/
   cachebust.ts              re-stamps a built web root without rebuilding
@@ -291,7 +293,27 @@ none would have been caught by `tsc`/lint alone:
    rendered at content height, and most of the visible box was
    unclickable. Moved to plain CSS.
 
-## Known gap
+## Known gaps
+
+### The `@pb/templates` pin is unresolved on purpose
+
+`bun.lock` carries no entry for `@pb/templates`. The upload work needs
+the templates commit that adds `src/uploads.ts`, and this environment
+can't reach GitHub's tarball API
+(`api.github.com/repos/.../tarball/...` → 403 from the egress proxy), so
+no valid lock entry could be written here. Leaving the stale one in place
+would have been worse: `bun install` keeps a locked commit for a
+`#branch` specifier, so it would have quietly reinstalled a
+`@pb/templates` without `uploads.ts`. With no entry, `bun install`
+re-resolves `#master` and writes a correct one, and `--frozen-lockfile`
+fails loudly instead of installing the wrong thing.
+
+**Run `bun install` once from an environment with GitHub API access and
+commit the regenerated `bun.lock`.** The upload work here was verified
+against the real package contents, vendored into `node_modules` from a
+checkout of the merged templates commit.
+
+### End-to-end flow
 
 Not exercised end-to-end here: the full auth → wizard → deploy flow
 against a live API + Postgres (none available in this environment —
@@ -301,3 +323,11 @@ template preview pipeline works in a real browser; the overwrite
 guards fire in the right places; the cache buster reloads a stale
 document exactly once; and the whole module graph type-checks and
 builds cleanly.
+
+The upload controls were driven in a real browser against a stubbed
+`/api/uploads/*`: a `.txt` and a 6 MB PDF were both refused without a
+single network request, a real upload rendered its progress bar and
+wrote `resumeUrl` + `resumeFilename` into the profile, removing the
+résumé cleared both fields and issued the DELETE, and the layout was
+checked at 375px. The `accept` attributes the pickers offer come
+straight from the shared rules.
