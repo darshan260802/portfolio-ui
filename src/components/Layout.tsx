@@ -101,6 +101,7 @@ export function Layout({ children }: { children: ReactNode }) {
 					<Logo />
 
 					<nav className="hidden items-center gap-6 sm:flex">
+						<NavItem to="/about">About</NavItem>
 						{session ? (
 							<>
 								<NavItem to="/dashboard">Dashboard</NavItem>
@@ -144,6 +145,13 @@ export function Layout({ children }: { children: ReactNode }) {
 							className="overflow-hidden border-t border-border/70 sm:hidden"
 						>
 							<div className="flex flex-col gap-1 px-6 py-3">
+								<Link
+									to="/about"
+									onClick={() => setMenuOpen(false)}
+									className="rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
+								>
+									About
+								</Link>
 								{session ? (
 									<>
 										<Link
