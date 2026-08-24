@@ -11,6 +11,8 @@ body {
 
 .preview-message {
 	padding: 2rem;
+	max-width: 44ch;
+	line-height: 1.5;
 	font-family: ui-sans-serif, system-ui, sans-serif;
 	font-size: 0.875rem;
 	color: #6b7280;
