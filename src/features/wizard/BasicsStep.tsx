@@ -1,9 +1,11 @@
-import type { PortfolioData, Social } from "@pb/templates";
+import type { PortfolioData, Social, UploadKind } from "@pb/templates";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
+import { UploadField, type UploadedFile } from "@/components/ui/upload-field";
+import { api } from "@/lib/api";
 import { X } from "lucide-react";
 import type { FieldErrors } from "./validation";
 import { cn } from "@/lib/utils";
@@ -34,13 +36,52 @@ interface StepProps {
 	data: PortfolioData;
 	onChange: (updater: (data: PortfolioData) => PortfolioData) => void;
 	errors?: FieldErrors;
+	/**
+	 * Saves the given data immediately, resolving to whether it stuck.
+	 * Removing an upload needs this: the file is only deleted from storage
+	 * once the profile that pointed at it has been saved without it, so a
+	 * half-finished removal can't leave a published portfolio linking to a
+	 * file that no longer exists.
+	 */
+	onSave?: (data: PortfolioData) => Promise<boolean>;
 }
 
-export function BasicsStep({ data, onChange, errors = {} }: StepProps) {
+export function BasicsStep({ data, onChange, errors = {}, onSave }: StepProps) {
 	const socials = data.socials ?? [];
 
 	function updateProfile<K extends keyof PortfolioData["profile"]>(key: K, value: PortfolioData["profile"][K]) {
 		onChange((d) => ({ ...d, profile: { ...d.profile, [key]: value } }));
+	}
+
+	function applyUpload(kind: UploadKind, file: UploadedFile) {
+		onChange((d) => ({
+			...d,
+			profile:
+				kind === "avatar"
+					? { ...d.profile, avatarUrl: file.url }
+					: { ...d.profile, resumeUrl: file.url, resumeFilename: file.filename },
+		}));
+	}
+
+	async function removeUpload(kind: UploadKind) {
+		const next: PortfolioData = {
+			...data,
+			profile:
+				kind === "avatar"
+					? { ...data.profile, avatarUrl: undefined }
+					: { ...data.profile, resumeUrl: undefined, resumeFilename: undefined },
+		};
+		onChange(() => next);
+
+		// Only once the cleared profile is safely saved is the stored file
+		// actually garbage. Without a save this step is local-only until the
+		// user hits Next, and deleting first would strand the saved profile on
+		// a URL that 404s. If there's no save available, the field is cleared
+		// and the object gets collected by the next upload of this kind.
+		if (!onSave || !(await onSave(next))) return;
+		// Best-effort: a leftover object costs a few KB, and the user has
+		// already seen the field clear.
+		await api.delete(`/api/uploads/${kind}`).catch(() => undefined);
 	}
 
 	function addSocial() {
@@ -141,6 +182,28 @@ export function BasicsStep({ data, onChange, errors = {} }: StepProps) {
 					<FieldError message={errors["profile.phone"]} />
 				</div>
 			</div>
+
+			<UploadField
+				kind="avatar"
+				label="Profile photo"
+				description="Shown on your published portfolio — anyone who visits your site can see and download it."
+				url={data.profile.avatarUrl}
+				imagePreview
+				onUploaded={(file) => applyUpload("avatar", file)}
+				onRemove={() => removeUpload("avatar")}
+				error={errors["profile.avatarUrl"]}
+			/>
+
+			<UploadField
+				kind="resume"
+				label="Résumé"
+				description="Visitors get a download button on your published portfolio. Leave it empty and no button appears."
+				url={data.profile.resumeUrl}
+				filename={data.profile.resumeFilename}
+				onUploaded={(file) => applyUpload("resume", file)}
+				onRemove={() => removeUpload("resume")}
+				error={errors["profile.resumeUrl"] ?? errors["profile.resumeFilename"]}
+			/>
 
 			<div className="flex flex-col gap-2">
 				<div className="flex items-center justify-between">
