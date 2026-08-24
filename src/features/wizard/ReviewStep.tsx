@@ -88,7 +88,7 @@ export function ReviewStep({ templateId, data }: ReviewStepProps) {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div className="rounded-xl border border-border p-6">
+			<div className="rounded-xl border border-border p-4 sm:p-6">
 				<div className="flex items-center gap-2">
 					<Download className="h-4 w-4 text-muted-foreground" />
 					<h2 className="font-display text-lg font-semibold">Download the project</h2>
@@ -102,7 +102,7 @@ export function ReviewStep({ templateId, data }: ReviewStepProps) {
 				{downloadError && <p className="mt-2 text-sm text-destructive">{downloadError}</p>}
 			</div>
 
-			<div className="rounded-xl border border-primary/25 bg-primary/[0.03] p-6">
+			<div className="rounded-xl border border-primary/25 bg-primary/[0.03] p-4 sm:p-6">
 				<div className="flex items-center gap-2">
 					<Rocket className="h-4 w-4 text-primary" />
 					<h2 className="font-display text-lg font-semibold">Host it on Portfolio Builder</h2>
@@ -115,12 +115,12 @@ export function ReviewStep({ templateId, data }: ReviewStepProps) {
 
 				{site && (
 					<div className="mb-4 flex gap-2.5 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm">
-						<TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-accent-foreground" />
-						<div className="text-accent-foreground">
+						<TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+						<div className="min-w-0 text-foreground">
 							<p className="font-medium">
 								{replacingLiveSite ? "You already have a live portfolio" : "You already have a portfolio"}
 							</p>
-							<p className="mt-0.5 opacity-90">
+							<p className="mt-0.5 text-muted-foreground">
 								{site.url ? (
 									<>
 										Publishing replaces what's at{" "}
@@ -128,7 +128,7 @@ export function ReviewStep({ templateId, data }: ReviewStepProps) {
 											href={site.url}
 											target="_blank"
 											rel="noreferrer"
-											className="font-medium underline underline-offset-2"
+											className="font-medium text-foreground underline underline-offset-2 [overflow-wrap:anywhere]"
 										>
 											{site.url.replace(/^https?:\/\//, "")}
 										</a>
@@ -196,10 +196,10 @@ export function ReviewStep({ templateId, data }: ReviewStepProps) {
 								href={deployment.url}
 								target="_blank"
 								rel="noreferrer"
-								className="mt-3 flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+								className="mt-3 flex items-start gap-1.5 text-sm font-medium text-primary hover:underline"
 							>
-								{deployment.url}
-								<ArrowUpRight className="h-3.5 w-3.5" />
+								<span className="min-w-0 [overflow-wrap:anywhere]">{deployment.url}</span>
+								<ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0" />
 							</a>
 						)}
 						{deployment.status === "FAILED" && deployment.log && (

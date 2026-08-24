@@ -94,8 +94,15 @@ export function TemplateDetailPage() {
 								</span>
 							))}
 						</div>
-						<MagneticButton className="mt-8 block w-fit">
-							<Button size="lg" onClick={handleCreate}>
+						{/* This label is long enough to exceed a phone's content width on
+						    its own, and buttons are whitespace-nowrap by default — let it
+						    wrap (and grow taller) rather than push the page sideways. */}
+						<MagneticButton className="mt-8 block w-fit max-w-full">
+							<Button
+								size="lg"
+								onClick={handleCreate}
+								className="h-auto max-w-full whitespace-normal px-5 py-3 text-center sm:px-8"
+							>
 								{site ? "Use this template instead" : "Create portfolio with this template"}
 							</Button>
 						</MagneticButton>

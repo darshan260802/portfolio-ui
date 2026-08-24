@@ -199,7 +199,7 @@ export function CreatePage() {
 	return (
 		<div className="grid h-full grid-cols-1 lg:grid-cols-2">
 			<div className="flex h-full flex-col">
-				<div className="border-b border-border/70 px-8 py-5">
+				<div className="border-b border-border/70 px-4 py-4 sm:px-8 sm:py-5">
 					<WizardStepper
 						steps={WIZARD_STEPS}
 						currentIndex={stepIndex}
@@ -208,7 +208,7 @@ export function CreatePage() {
 					/>
 				</div>
 
-				<div className="flex-1 overflow-y-auto px-8 py-8">
+				<div className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8">
 					<AnimatePresence mode="wait" custom={direction} initial={false}>
 						<motion.div
 							key={currentStep.id}
@@ -235,7 +235,7 @@ export function CreatePage() {
 					</AnimatePresence>
 				</div>
 
-				<div className="flex items-center justify-between border-t border-border/70 px-8 py-4">
+				<div className="flex items-center justify-between border-t border-border/70 px-4 py-3 sm:px-8 sm:py-4">
 					<Button variant="outline" disabled={stepIndex === 0} onClick={() => void goToStep(stepIndex - 1)}>
 						Back
 					</Button>
