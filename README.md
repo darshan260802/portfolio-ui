@@ -106,10 +106,18 @@ For any of this to work, the server must not cache `index.html` or
 `version.json`. With nginx:
 
 ```nginx
+location / { try_files $uri $uri/ /index.html; }
 location = /index.html { add_header Cache-Control "no-store"; }
 location = /version.json { add_header Cache-Control "no-store"; }
 location /assets/ { add_header Cache-Control "public, max-age=31536000, immutable"; }
 ```
+
+Note what `try_files $uri $uri/` implies for `public/`: anything in there
+shadows the client route of the same path. A `public/templates/` folder
+made `$uri/` match a real directory for `/templates/aurora`, so a direct
+load or refresh of a template page got a 403 from the directory instead
+of the app. Don't add a `public/` entry whose name collides with a route
+in `src/routes/index.tsx`.
 
 ## Structure
 

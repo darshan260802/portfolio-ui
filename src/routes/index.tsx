@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router";
+import { Route, Routes, useLocation } from "react-router";
 import { Layout } from "@/components/Layout";
 import { GalleryPage } from "@/features/gallery/GalleryPage";
 import { TemplateDetailPage } from "@/features/gallery/TemplateDetailPage";
@@ -18,9 +18,11 @@ import { SettingsPage } from "@/features/settings/SettingsPage";
  * Layout key its page-transition wrapper on useLocation() internally.
  */
 export function AppRoutes() {
+	const location = useLocation();
+
 	return (
 		<Layout>
-			<Routes>
+			<Routes location={location}>
 				<Route path="/" element={<GalleryPage />} />
 				<Route path="/templates/:id" element={<TemplateDetailPage />} />
 				<Route path="/login" element={<LoginPage />} />
