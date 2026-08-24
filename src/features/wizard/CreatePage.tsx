@@ -17,21 +17,17 @@ import { ProjectsStep } from "./ProjectsStep";
 import { SkillsStep } from "./SkillsStep";
 import { ReviewStep } from "./ReviewStep";
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { DraftConflictPrompt, type DraftCandidate } from "./DraftConflictPrompt";
 import { cn } from "@/lib/utils";
 
 interface ProfileResponse {
 	templateId: string | null;
 	data: PortfolioData;
+	/** ISO timestamp of the last save, or null if this account has no profile yet. */
+	updatedAt: string | null;
 }
 
 type SaveState = "idle" | "saving" | "saved" | "error";
-
-/** One side of a local-vs-account draft conflict (see the effect below). */
-interface DraftCandidate {
-	templateId: string;
-	data: PortfolioData;
-}
 
 const DEVICE_WIDTHS = { desktop: "100%", tablet: "48rem", mobile: "24rem" } as const;
 type DeviceMode = keyof typeof DEVICE_WIDTHS;
@@ -44,6 +40,7 @@ export function CreatePage() {
 	const navigate = useNavigate();
 	const draftTemplateId = useDraftStore((s) => s.templateId);
 	const draftData = useDraftStore((s) => s.data);
+	const draftUpdatedAt = useDraftStore((s) => s.updatedAt);
 	const setDraftData = useDraftStore((s) => s.setData);
 	const setDraftTemplateId = useDraftStore((s) => s.setTemplateId);
 
@@ -75,8 +72,12 @@ export function CreatePage() {
 					JSON.stringify(draftData) !== JSON.stringify(profile.data)
 				) {
 					setConflict({
-						local: { templateId: draftTemplateId, data: draftData },
-						server: { templateId: profile.templateId, data: profile.data },
+						local: { templateId: draftTemplateId, data: draftData, updatedAt: draftUpdatedAt },
+						server: {
+							templateId: profile.templateId,
+							data: profile.data,
+							updatedAt: profile.updatedAt ? Date.parse(profile.updatedAt) : null,
+						},
 					});
 					setLoaded(true);
 					return;
@@ -177,38 +178,8 @@ export function CreatePage() {
 
 	if (conflict) {
 		return (
-			<div className="flex h-full flex-col items-center justify-center gap-6 px-6 py-12 text-center">
-				<div className="max-w-md">
-					<h2 className="font-display text-xl font-semibold">Which version do you want to keep?</h2>
-					<p className="mt-1.5 text-sm text-muted-foreground">
-						This device has unsaved changes, and your account already has a saved portfolio. Pick which one to
-						continue editing — the other will be discarded.
-					</p>
-				</div>
-				<div className="grid w-full max-w-xl gap-4 sm:grid-cols-2">
-					<Card className="flex flex-col text-left">
-						<CardHeader>
-							<CardTitle className="text-base">This device</CardTitle>
-							<CardDescription>{conflict.local.data.profile.fullName || "Untitled"} — not yet saved</CardDescription>
-						</CardHeader>
-						<CardFooter className="mt-auto">
-							<Button className="w-full" onClick={() => resolveConflict("local")}>
-								Keep this version
-							</Button>
-						</CardFooter>
-					</Card>
-					<Card className="flex flex-col text-left">
-						<CardHeader>
-							<CardTitle className="text-base">Your account</CardTitle>
-							<CardDescription>{conflict.server.data.profile.fullName || "Untitled"} — saved</CardDescription>
-						</CardHeader>
-						<CardFooter className="mt-auto">
-							<Button variant="outline" className="w-full" onClick={() => resolveConflict("server")}>
-								Use saved portfolio
-							</Button>
-						</CardFooter>
-					</Card>
-				</div>
+			<div className="h-full overflow-y-auto">
+				<DraftConflictPrompt local={conflict.local} server={conflict.server} onChoose={resolveConflict} />
 			</div>
 		);
 	}
