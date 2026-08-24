@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
-import { Star } from "lucide-react";
 import { useTemplates } from "./useTemplates";
-import { isFeatured } from "./featured";
+import { promotionOf, withPromotedFirst } from "./promotions";
+import { PromotionBadge } from "./PromotionBadge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TemplateThumbnail } from "@/components/ui/template-thumbnail";
 import { GridCanvas } from "@/components/animated/GridCanvas";
@@ -35,10 +35,12 @@ export function GalleryPage() {
 		return Array.from(set).sort();
 	}, [templates]);
 
+	// Promoted first in both views — a filtered list is still a list someone
+	// is choosing from, so the ordering shouldn't flip when a tag is picked.
 	const visible = useMemo(() => {
 		if (!templates) return null;
-		if (!activeTag) return templates;
-		return templates.filter((t) => t.tags.includes(activeTag));
+		const matching = activeTag ? templates.filter((t) => t.tags.includes(activeTag)) : templates;
+		return withPromotedFirst(matching);
 	}, [templates, activeTag]);
 
 	return (
@@ -117,7 +119,12 @@ export function GalleryPage() {
 												alt={template.name}
 												imageClassName="transition-transform duration-500 group-hover:scale-[1.04]"
 											/>
-											{isFeatured(template.id) && <FeaturedBadge />}
+											{promotionOf(template.id) && (
+												<PromotionBadge
+													promotion={promotionOf(template.id)!}
+													className="absolute left-3 top-3 z-10"
+												/>
+											)}
 										</div>
 										<CardHeader className="pt-6">
 											<CardTitle>{template.name}</CardTitle>
@@ -147,19 +154,5 @@ export function GalleryPage() {
 				)}
 			</div>
 		</div>
-	);
-}
-
-/**
- * The "Featured" pill overlaid on a template's thumbnail. Sits on the
- * accent color (the one warm color in the palette) so it reads as a
- * highlight rather than another neutral tag chip in the card body.
- */
-function FeaturedBadge() {
-	return (
-		<span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground shadow-sm">
-			<Star className="h-3 w-3 fill-current" aria-hidden />
-			Featured
-		</span>
 	);
 }
