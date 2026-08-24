@@ -37,7 +37,17 @@ function PreviewApp({ templateId }: { templateId: string }) {
 	useEffect(() => {
 		const loader = TEMPLATE_LOADERS[templateId];
 		if (!loader) {
-			setLoadError(`Unknown template "${templateId}"`);
+			// The gallery lists whatever GET /api/templates returns — the API's
+			// copy of @pb/templates — while this iframe can only render what
+			// THIS bundle was built against. The two are deployed separately,
+			// so a template added to the package shows up as a selectable card
+			// here before the web app that has to draw it has been rebuilt.
+			// Say that, rather than "Unknown template", which reads like the id
+			// is wrong when it's the app that's behind.
+			setLoadError(
+				`This version of the app can't render the "${templateId}" template yet. ` +
+					`Reload the page — if it keeps happening, the app needs redeploying to catch up with the server.`,
+			);
 			return;
 		}
 		let cancelled = false;
