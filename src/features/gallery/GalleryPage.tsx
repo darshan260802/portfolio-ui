@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
+import { Star } from "lucide-react";
 import { useTemplates } from "./useTemplates";
+import { isFeatured } from "./featured";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TemplateThumbnail } from "@/components/ui/template-thumbnail";
 import { GridCanvas } from "@/components/animated/GridCanvas";
@@ -109,11 +111,14 @@ export function GalleryPage() {
 							<TiltCard max={5}>
 								<Card className="h-full overflow-hidden transition-shadow group-hover:shadow-lg">
 									<SpotlightCard>
-										<TemplateThumbnail
-											src={template.thumbnail}
-											alt={template.name}
-											imageClassName="transition-transform duration-500 group-hover:scale-[1.04]"
-										/>
+										<div className="relative">
+											<TemplateThumbnail
+												src={template.thumbnail}
+												alt={template.name}
+												imageClassName="transition-transform duration-500 group-hover:scale-[1.04]"
+											/>
+											{isFeatured(template.id) && <FeaturedBadge />}
+										</div>
 										<CardHeader className="pt-6">
 											<CardTitle>{template.name}</CardTitle>
 											<CardDescription>{template.description}</CardDescription>
@@ -142,5 +147,19 @@ export function GalleryPage() {
 				)}
 			</div>
 		</div>
+	);
+}
+
+/**
+ * The "Featured" pill overlaid on a template's thumbnail. Sits on the
+ * accent color (the one warm color in the palette) so it reads as a
+ * highlight rather than another neutral tag chip in the card body.
+ */
+function FeaturedBadge() {
+	return (
+		<span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground shadow-sm">
+			<Star className="h-3 w-3 fill-current" aria-hidden />
+			Featured
+		</span>
 	);
 }
