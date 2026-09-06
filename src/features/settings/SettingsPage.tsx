@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { Check, Loader2, Moon, Sun } from "lucide-react";
+import { Check, GitBranch, Loader2, Moon, RefreshCw, Sun } from "lucide-react";
 import { useTemplates } from "@/features/gallery/useTemplates";
 import { useSite } from "@/features/deploy/useSite";
 import { useSlugCheck } from "@/features/deploy/useSlugCheck";
@@ -12,7 +12,7 @@ import { formatApiError, slugReasonMessage } from "@/lib/api-error";
 import { toast } from "@/lib/toast-store";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TemplateThumbnail } from "@/components/ui/template-thumbnail";
 import { ScrollReveal } from "@/components/animated/ScrollReveal";
@@ -67,6 +67,13 @@ export function SettingsPage() {
 		// picks up a failed attempt correctly (no-op — templateId won't have
 		// moved server-side).
 		void deploy({ slug: site.slug, templateId }).then(() => refreshSite());
+	}
+
+	function handleRebuildFromRepo() {
+		if (!site) return;
+		// No `git` in the body: nothing changed here, so this rebuilds the
+		// config already on file — the "I pushed a commit, publish it" button.
+		void deploy({ source: "GIT" }).then(() => refreshSite());
 	}
 
 	function handleSwitchMode(next: ThemeMode) {
@@ -153,6 +160,97 @@ export function SettingsPage() {
 					<ScrollReveal delay={0.05}>
 						<Card>
 							<CardHeader>
+								<CardTitle>Source</CardTitle>
+								<CardDescription>
+									{site.source === "GIT"
+										? "Your portfolio is built from your own repository."
+										: "Your portfolio is built from one of our templates."}
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="flex flex-col gap-4">
+								{site.source === "GIT" && site.git ? (
+									<>
+										<dl className="flex flex-col gap-2 text-sm">
+											<div className="flex flex-wrap items-baseline gap-x-2">
+												<dt className="text-muted-foreground">Repository</dt>
+												<dd className="min-w-0 font-medium [overflow-wrap:anywhere]">
+													<a
+														href={site.git.repoUrl}
+														target="_blank"
+														rel="noreferrer"
+														className="hover:underline"
+													>
+														{site.git.repoUrl.replace(/^https?:\/\//, "")}
+													</a>
+												</dd>
+											</div>
+											<div className="flex flex-wrap items-baseline gap-x-2">
+												<dt className="text-muted-foreground">Branch</dt>
+												<dd className="font-medium">{site.git.branch ?? "default"}</dd>
+											</div>
+											<div className="flex flex-wrap items-baseline gap-x-2">
+												<dt className="text-muted-foreground">Build</dt>
+												<dd className="min-w-0 font-mono text-xs [overflow-wrap:anywhere]">
+													{site.git.installCommand} · {site.git.buildCommand} → {site.git.buildDir}
+												</dd>
+											</div>
+											<div className="flex flex-wrap items-baseline gap-x-2">
+												<dt className="text-muted-foreground">Environment</dt>
+												<dd className="font-medium">
+													{site.git.envKeys.length === 0
+														? "No variables"
+														: `${site.git.envKeys.length} variable${site.git.envKeys.length === 1 ? "" : "s"}`}
+												</dd>
+											</div>
+										</dl>
+										<div className="flex flex-wrap items-center gap-3">
+											<Button onClick={handleRebuildFromRepo} disabled={busy} className="w-fit">
+												<RefreshCw className={cn("h-4 w-4", starting && "animate-spin")} />
+												{starting ? "Starting…" : "Rebuild from repository"}
+											</Button>
+											<Link
+												to="/import"
+												className="text-sm font-medium text-foreground underline underline-offset-4"
+											>
+												Edit repository settings
+											</Link>
+										</div>
+										<p className="text-xs text-muted-foreground">
+											Rebuilding clones the latest commit on{" "}
+											{site.git.branch ? (
+												<span className="font-medium text-foreground">{site.git.branch}</span>
+											) : (
+												"the default branch"
+											)}{" "}
+											and republishes it.
+										</p>
+									</>
+								) : (
+									<div className="flex flex-col gap-3">
+										<p className="text-sm text-muted-foreground">
+											Built your own portfolio project? Host that instead — we'll clone it, build it with
+											Bun, and serve it here.
+										</p>
+										<Link
+											to="/import"
+											className={cn(buttonVariants({ variant: "outline" }), "w-fit")}
+										>
+											<GitBranch className="h-4 w-4" />
+											{site.git ? "Switch back to your repository" : "Host your own repo"}
+										</Link>
+									</div>
+								)}
+							</CardContent>
+						</Card>
+					</ScrollReveal>
+
+					{/* Appearance is a property of the *template* build (it reads
+					    theme.mode out of the stored profile), so it has nothing to
+					    say about a site built from someone else's repo. */}
+					{site.source === "TEMPLATE" && (
+					<ScrollReveal delay={0.1}>
+						<Card>
+							<CardHeader>
 								<CardTitle>Appearance</CardTitle>
 								<CardDescription>
 									Publish your portfolio in light or dark. Switching rebuilds and republishes it, same as
@@ -199,44 +297,68 @@ export function SettingsPage() {
 							</CardContent>
 						</Card>
 					</ScrollReveal>
+					)}
 
-					<ScrollReveal delay={0.1}>
+					<ScrollReveal delay={0.15}>
 						<Card>
 							<CardHeader>
 								<CardTitle>Template</CardTitle>
-								<CardDescription>Switching rebuilds and republishes your site.</CardDescription>
+								<CardDescription>
+									{site.source === "GIT"
+										? "Picking a template switches your portfolio away from your repository and publishes the template instead. Your repository settings are kept."
+										: "Switching rebuilds and republishes your site."}
+								</CardDescription>
 							</CardHeader>
 							<CardContent className="flex flex-col gap-4">
 								<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-									{templates?.map((t) => (
-										<button
-											key={t.id}
-											type="button"
-											onClick={() => handleSwitchTemplate(t.id)}
-											disabled={busy || t.id === site.templateId}
-											className={cn(
-												"overflow-hidden rounded-md border text-left text-xs transition-colors",
-												t.id === site.templateId
-													? "border-primary ring-1 ring-primary"
-													: "border-border hover:border-foreground/30",
-											)}
-										>
-											<TemplateThumbnail src={t.thumbnail} alt={t.name} />
-											<div className="p-2 font-medium">{t.name}</div>
-										</button>
-									))}
+									{templates?.map((t) => {
+										// "Current" means published, not merely remembered: a
+										// repo-backed site keeps its last template pick, and
+										// that one still has to be clickable — it's exactly
+										// how you switch back to it.
+										const isCurrent = site.source === "TEMPLATE" && t.id === site.templateId;
+										return (
+											<button
+												key={t.id}
+												type="button"
+												onClick={() => handleSwitchTemplate(t.id)}
+												disabled={busy || isCurrent}
+												className={cn(
+													"overflow-hidden rounded-md border text-left text-xs transition-colors",
+													isCurrent
+														? "border-primary ring-1 ring-primary"
+														: "border-border hover:border-foreground/30",
+												)}
+											>
+												<TemplateThumbnail src={t.thumbnail} alt={t.name} />
+												<div className="p-2 font-medium">{t.name}</div>
+											</button>
+										);
+									})}
 								</div>
-								{deployment && (
-									<div className="border-t border-border pt-4">
-										<DeploymentTimeline status={deployment.status} />
-									</div>
-								)}
 							</CardContent>
 						</Card>
 					</ScrollReveal>
 
-					<Link to="/create" className="text-sm font-medium text-foreground underline underline-offset-4">
-						Edit portfolio content
+					{/* One timeline for the page, not one per card: a build can be
+					    started from the source card, the appearance toggle or the
+					    template grid, and it's the same build either way. */}
+					{deployment && (
+						<div className="rounded-lg border border-border bg-card p-4">
+							<DeploymentTimeline status={deployment.status} />
+							{deployment.status === "FAILED" && deployment.log && (
+								<pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap rounded bg-muted p-3 font-mono text-xs">
+									{deployment.log}
+								</pre>
+							)}
+						</div>
+					)}
+
+					<Link
+						to={site.source === "GIT" ? "/import" : "/create"}
+						className="text-sm font-medium text-foreground underline underline-offset-4"
+					>
+						{site.source === "GIT" ? "Edit repository settings" : "Edit portfolio content"}
 					</Link>
 				</>
 			)}

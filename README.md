@@ -2,7 +2,8 @@
 
 Pick a template. Fill in your details. Get a hosted portfolio at
 `you.ourapp.com` in minutes, or download a real Vite + React project
-and deploy it anywhere.
+and deploy it anywhere. Already built your own? Hand us the repo
+instead and we'll host that.
 
 <p align="center">
   <img src="docs/screenshots/gallery.png" alt="The template gallery, showing five templates with real captured thumbnails." width="900" />
@@ -32,9 +33,15 @@ templates from
 - **Or export the ZIP** — a fully working Vite + React project with your
   data baked in. `bun install && bun run build` and it's ready for any
   static host.
+- **Or host your own project** — `/import`: a public repo URL, an install
+  command (`bun install`), a build command (`bun run build`), the folder
+  your build writes into (`dist`), and any environment variables it
+  needs. We clone, build and serve the output at the same
+  `you.ourapp.com`. No template involved.
 - **Rename, restyle, replace** — Settings lets you rename the subdomain,
-  toggle the published portfolio between light and dark, or switch
-  templates entirely. Every option rebuilds and republishes.
+  toggle the published portfolio between light and dark, switch
+  templates entirely, or rebuild from the latest commit on your repo.
+  Every option rebuilds and republishes.
 
 ## Feature highlights
 
@@ -43,6 +50,8 @@ templates from
 | **Live preview iframe** | A postMessage protocol streams every wizard change into a `<iframe src="/preview.html?template=…">` running the real template. | Keeps template code (and its global CSS) out of the builder bundle. Rolldown code-splits along the two-entry graph — proven by inspecting the built chunks. |
 | **Draft persistence across auth** | The in-progress wizard lives in `localStorage` (Zustand + `persist`). | You can pick a template while logged out, get bounced through OAuth, and land back on `/create` with everything intact. |
 | **Draft-conflict prompt** | Detects when the local draft AND the account both have real, differing content and asks which to keep, showing the two side by side. | Two devices editing the same account no longer silently overwrite each other. Mobile stacks it into one card per version so both "Keep" buttons are reachable. |
+| **Repo import with real defaults** | `/import` pre-fills `bun install`, `bun run build` and `dist`, and guesses the subdomain from the repo path — so the honest minimum is one URL. Per-field API errors ("commands must start with bun", "the build folder can't step outside the repository") land back on the input that caused them. | Four config fields in front of someone who just wants their site up is four chances to bounce. The ones that are almost always the same should already be filled in. |
+| **Env values you can edit without re-typing** | Saved variables render with an empty, masked value box and a "leave blank to keep" placeholder; only a box you actually type in is sent. Removing a row deletes that variable. | The API never sends a stored value back (it's the user's API token). Without "keep", deleting one variable would mean re-entering every other one from wherever they're kept. |
 | **Overwrite guard** | Attempting to publish over an existing site (or entering the wizard from a template while a site is already live) opens a confirm dialog naming the current URL. | An account hosts exactly one portfolio; previously the only signal was the live site changing under you. |
 | **Profile photo + résumé upload** | One `UploadField` control backs both. It checks type and size against `@pb/templates`'s `UPLOAD_RULES` — the same object the API enforces — before spending a byte on the network, uploads over XHR for a real progress bar, and lets an in-flight upload be cancelled. Both say plainly that the file will be public on the published portfolio. | These were schema fields (`avatarUrl`, `resumeUrl`) with no way to fill them. Sharing the rules means the picker can't accept a file the server then rejects; `fetch` has no upload-progress event, which is why this one control doesn't use it. |
 | **Removal saves before it deletes** | Clearing a photo or résumé persists the cleared profile first, and only then asks the API to delete the stored file. | The wizard is otherwise local-until-Next. Deleting first would leave a saved profile — and a live site — pointing at a URL that 404s if the user walked away mid-edit. |
@@ -55,7 +64,8 @@ templates from
 - Engineers and designers who want a hosted portfolio in an hour, not a
   weekend, but still want it to look real.
 - Anyone who wants to own their portfolio — hit **Download** and every
-  file is yours, no proprietary format, no lock-in.
+  file is yours, no proprietary format, no lock-in. Or skip our
+  templates entirely and have us host the project you already wrote.
 - Teams building on top: the wizard + API + template contract is a
   clean example of how to keep user data, template rendering, and
   publishing infrastructure separated.
@@ -252,7 +262,7 @@ src/
   main.tsx / preview.tsx    the two entries
   routes/                   route table
   features/
-    gallery/    auth/    wizard/    preview/    deploy/    settings/    dashboard/
+    gallery/    auth/    wizard/    import/    preview/    deploy/    settings/    dashboard/
   components/ui/            small shadcn-style primitives (Button, Input, Card, ConfirmDialog, TemplateThumbnail, UploadField, …)
   lib/                      api.ts, auth-client.ts, draft-store.ts, env.ts, version-check.ts, utils.ts
 scripts/
@@ -316,8 +326,11 @@ checkout of the merged templates commit.
 ### End-to-end flow
 
 Not exercised end-to-end here: the full auth → wizard → deploy flow
-against a live API + Postgres (none available in this environment —
-see `portfolio-builder-api`'s README). What's verified: the app
+against a live API + Postgres from this app's own UI. (The API side of
+the repo-import flow — save config, publish, switch source, publish
+again — *was* driven against a real Postgres; see
+`portfolio-builder-api`'s README. What hasn't been clicked through is
+the browser half.) What's verified: the app
 renders, routes, and settles correctly on every navigation; the
 template preview pipeline works in a real browser; the overwrite
 guards fire in the right places; the cache buster reloads a stale

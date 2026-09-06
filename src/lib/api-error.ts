@@ -84,6 +84,10 @@ function humanizeErrorCode(code: string): string {
 			return "That template isn't available.";
 		case "slug_required":
 			return "Choose a subdomain first.";
+		case "no_repository":
+			return "Add your repository details before publishing.";
+		case "missing_env_values":
+			return "Re-enter the environment variable values and save again.";
 		default:
 			return code.replaceAll("_", " ");
 	}

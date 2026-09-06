@@ -9,6 +9,7 @@ import { ForgotPasswordPage } from "@/features/auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/features/auth/ResetPasswordPage";
 import { RequireAuth } from "@/features/auth/RequireAuth";
 import { CreatePage } from "@/features/wizard/CreatePage";
+import { ImportRepoPage } from "@/features/import/ImportRepoPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 
@@ -36,6 +37,14 @@ export function AppRoutes() {
 					element={
 						<RequireAuth>
 							<CreatePage />
+						</RequireAuth>
+					}
+				/>
+				<Route
+					path="/import"
+					element={
+						<RequireAuth>
+							<ImportRepoPage />
 						</RequireAuth>
 					}
 				/>
