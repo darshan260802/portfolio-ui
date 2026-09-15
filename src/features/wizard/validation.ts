@@ -31,6 +31,9 @@ export const STEP_FIELDS: Record<WizardStepId, string[]> = {
 	experience: ["experience"],
 	projects: ["projects"],
 	skills: ["skills"],
+	education: ["education"],
+	achievements: ["achievements"],
+	customSections: ["customSections"],
 	review: [],
 };
 

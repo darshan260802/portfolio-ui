@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FieldError } from "@/components/ui/field-error";
 import { Trash2, Plus } from "lucide-react";
+import { LinksEditor } from "./LinksEditor";
 import type { FieldErrors } from "./validation";
 
 interface StepProps {
@@ -80,6 +81,7 @@ export function ProjectsStep({ data, onChange, errors = {} }: StepProps) {
 								<FieldError message={errors[`projects.${i}.repoUrl`]} />
 							</div>
 						</div>
+						<LinksEditor links={item.links ?? []} onChange={(links) => update(item.id, { links })} prefix={`projects.${i}.links`} errors={errors} />
 						<div className="flex flex-col gap-1.5">
 							<Label>Tags (comma separated)</Label>
 							<Input

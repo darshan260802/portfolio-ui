@@ -18,17 +18,18 @@ interface WizardStepperProps {
  */
 export function WizardStepper({ steps, currentIndex, onStepClick, stepsWithErrors }: WizardStepperProps) {
 	return (
-		<ol className="flex items-center">
+		<ol className="flex items-center gap-2 overflow-x-auto pb-2">
 			{steps.map((step, i) => {
 				const isComplete = i < currentIndex;
 				const isCurrent = i === currentIndex;
 				const hasError = stepsWithErrors.has(step.id);
 
 				return (
-					<li key={step.id} className={cn("flex items-center", i < steps.length - 1 && "flex-1")}>
+					<li key={step.id} className={cn("flex min-w-14 shrink-0 items-center", i < steps.length - 1 && "flex-1")}>
 						<button
 							type="button"
-							onClick={() => onStepClick(i)}
+							aria-label={step.label}
+                            onClick={() => onStepClick(i)}
 							className="group flex flex-col items-center gap-2"
 							aria-current={isCurrent ? "step" : undefined}
 						>
@@ -56,7 +57,7 @@ export function WizardStepper({ steps, currentIndex, onStepClick, stepsWithError
 							</span>
 							<span
 								className={cn(
-									"hidden text-xs transition-colors sm:block",
+									"max-w-20 text-center text-xs transition-colors",
 									isCurrent ? "font-medium text-foreground" : "text-muted-foreground",
 								)}
 							>
