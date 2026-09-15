@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
-    "@pb/templates": "github:darshan260802/portfolio-templates#3d6ab7240fab74407a2084da734f9577e370c92e",
+    "@pb/templates": "github:darshan260802/portfolio-templates#7f90a24d68d1cbd504a7ccfb08e79debd0f59746",
     "@tiptap/extension-link": "^3.30.2",
     "@tiptap/extension-placeholder": "^3.30.2",
     "@tiptap/react": "^3.30.2",
