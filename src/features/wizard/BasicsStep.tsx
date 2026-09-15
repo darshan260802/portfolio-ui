@@ -210,7 +210,7 @@ export function BasicsStep({ data, onChange, errors = {}, onSave }: StepProps) {
 				</div>
 				{socials.map((social, i) => (
 					<div key={i} className="flex flex-col gap-1">
-                        <Input aria-label={`Link ${i + 1} label`} placeholder="Label, e.g. My blog" maxLength={40} value={social.label ?? ""} onChange={(e) => updateSocial(i, { label: e.target.value })} />
+                        <Input aria-label={`Link ${i + 1} label`} placeholder="Label, e.g. My blog" maxLength={40} value={social.label ?? ""} onChange={(e) => updateSocial(i, { label: e.target.value || undefined })} />
                         <FieldError message={errors[`socials.${i}.label`]} />
 						<div className="flex flex-wrap gap-2">
 							<select
