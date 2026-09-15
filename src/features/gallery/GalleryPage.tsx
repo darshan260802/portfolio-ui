@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
+import { ArrowRight, GitBranch } from "lucide-react";
 import { useTemplates } from "./useTemplates";
 import { promotionOf, withPromotedFirst } from "./promotions";
 import { PromotionBadge } from "./PromotionBadge";
@@ -57,6 +58,20 @@ export function GalleryPage() {
 					<p className="mt-5 max-w-xl text-lg text-muted-foreground">
 						Pick a design, fill in your details, and have a hosted portfolio live in minutes.
 					</p>
+					{/* The second way in. Someone who already built their own site
+					    shouldn't have to read the gallery to find out we'll host
+					    it — that's the audience most likely to bounce. */}
+					<Link
+						to="/import"
+						className="group mt-7 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm transition-colors hover:border-primary/40"
+					>
+						<GitBranch className="h-4 w-4 text-primary" />
+						<span className="text-muted-foreground">
+							Already built one?{" "}
+							<span className="font-medium text-foreground">Host it from your own repo</span>
+						</span>
+						<ArrowRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+					</Link>
 				</div>
 			</div>
 

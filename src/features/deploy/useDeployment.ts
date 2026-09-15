@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { SiteSource } from "./useSite";
 import { api } from "@/lib/api";
 import { formatApiError } from "@/lib/api-error";
 import { toast } from "@/lib/toast-store";
@@ -18,6 +19,29 @@ const POLL_INTERVAL_MS = 1500;
 // on every failed poll forever with no cap, so a persistent network issue
 // (or the deployment row genuinely disappearing) spun silently forever.
 const MAX_CONSECUTIVE_POLL_FAILURES = 20;
+
+/**
+ * A repo config on the way *to* the API. Mirrors `GitSource` except for
+ * `env`, where an entry with no `value` means "keep the one you already
+ * have" — that's what lets the form submit a variable it was never allowed
+ * to read back.
+ */
+export interface GitSourceInput {
+	repoUrl: string;
+	branch?: string | null;
+	installCommand?: string;
+	buildCommand?: string;
+	buildDir?: string;
+	env?: { key: string; value?: string }[];
+}
+
+export interface DeployBody {
+	slug?: string;
+	templateId?: string;
+	source?: SiteSource;
+	/** Saved before the build starts, so this is also "update my repo settings and republish". */
+	git?: GitSourceInput;
+}
 
 /**
  * Starts and tracks one deployment. Surfaces failures via toast (both a
@@ -64,7 +88,7 @@ export function useDeployment() {
 			});
 	}
 
-	async function deploy(body: { slug?: string; templateId?: string }) {
+	async function deploy(body: DeployBody) {
 		setStarting(true);
 		setStartError(null);
 		try {

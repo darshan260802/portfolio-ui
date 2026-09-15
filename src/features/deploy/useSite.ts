@@ -1,11 +1,35 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 
+/** Where the published HTML comes from — our template, or the user's own repo. */
+export type SiteSource = "TEMPLATE" | "GIT";
+
+/**
+ * A site's "build from my own repository" config as the API reports it.
+ *
+ * `envKeys` and not the values: the API never sends a stored environment
+ * variable back, so the settings form shows which variables exist and lets
+ * you replace one, but can't show you what it currently is. See
+ * portfolio-builder-api's site-source.service.ts.
+ */
+export interface GitSource {
+	repoUrl: string;
+	branch: string | null;
+	installCommand: string;
+	buildCommand: string;
+	buildDir: string;
+	envKeys: string[];
+}
+
 export interface Site {
 	slug: string;
-	templateId: string;
+	source: SiteSource;
+	/** null for a repo-backed site that never picked a template. */
+	templateId: string | null;
 	status: "DRAFT" | "LIVE";
 	url: string | null;
+	/** Present whenever a repo config is on file — even while `source` is TEMPLATE. */
+	git: GitSource | null;
 }
 
 /**

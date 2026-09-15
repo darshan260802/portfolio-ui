@@ -1,11 +1,17 @@
 import { Link } from "react-router";
-import { ArrowUpRight, Globe, Loader2 } from "lucide-react";
+import { ArrowUpRight, GitBranch, Globe, LayoutTemplate, Loader2 } from "lucide-react";
 import { useSite } from "@/features/deploy/useSite";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollReveal } from "@/components/animated/ScrollReveal";
 import { GridCanvas } from "@/components/animated/GridCanvas";
 import { cn } from "@/lib/utils";
+
+/** "https://github.com/me/site.git" → "me/site" — the part anyone recognises. */
+function repoLabel(repoUrl: string | undefined): string {
+	if (!repoUrl) return "Your repository";
+	return repoUrl.replace(/^https?:\/\//, "").replace(/\.git$/, "").split("/").slice(1).join("/") || repoUrl;
+}
 
 export function DashboardPage() {
 	const { site } = useSite();
@@ -28,11 +34,17 @@ export function DashboardPage() {
 					<Card className="relative border-none bg-transparent shadow-none">
 						<CardHeader>
 							<CardTitle>No portfolio yet</CardTitle>
-							<CardDescription>Pick a template to get started — it only takes a minute.</CardDescription>
+							<CardDescription>
+								Start from one of our templates, or bring a project you've already built.
+							</CardDescription>
 						</CardHeader>
-						<CardContent>
+						<CardContent className="flex flex-wrap gap-3">
 							<Link to="/" className={cn(buttonVariants())}>
 								Browse templates
+							</Link>
+							<Link to="/import" className={cn(buttonVariants({ variant: "outline" }))}>
+								<GitBranch className="h-4 w-4" />
+								Host your own repo
 							</Link>
 						</CardContent>
 					</Card>
@@ -43,8 +55,14 @@ export function DashboardPage() {
 				<ScrollReveal>
 					<Card className="overflow-hidden">
 						<CardHeader>
-							<div className="flex items-center justify-between">
-								<CardTitle>{site.templateId}</CardTitle>
+							<div className="flex items-center justify-between gap-3">
+								{/* A repo-backed site has no template to name, so the
+								    repository is the identity here — "aurora" would be
+								    actively wrong, and the repo is what a user checks
+								    when they're wondering what's actually published. */}
+								<CardTitle className="min-w-0 [overflow-wrap:anywhere]">
+									{site.source === "GIT" ? repoLabel(site.git?.repoUrl) : site.templateId}
+								</CardTitle>
 								<span
 									className={cn(
 										"build-tag rounded-full border px-2.5 py-1",
@@ -60,7 +78,19 @@ export function DashboardPage() {
 									{site.status}
 								</span>
 							</div>
-							<CardDescription>Template applied to your portfolio.</CardDescription>
+							<CardDescription className="flex items-center gap-1.5">
+								{site.source === "GIT" ? (
+									<>
+										<GitBranch className="h-3.5 w-3.5 shrink-0" />
+										Built from your repository{site.git?.branch ? ` (${site.git.branch})` : ""}.
+									</>
+								) : (
+									<>
+										<LayoutTemplate className="h-3.5 w-3.5 shrink-0" />
+										Template applied to your portfolio.
+									</>
+								)}
+							</CardDescription>
 						</CardHeader>
 						<CardContent className="flex flex-col gap-5">
 							{site.url ? (
@@ -77,10 +107,16 @@ export function DashboardPage() {
 							) : (
 								<p className="text-sm text-muted-foreground">Not hosted yet — finish and publish it.</p>
 							)}
-							<div className="flex gap-4 border-t border-border pt-4 text-sm">
-								<Link to="/create" className="font-medium text-foreground hover:underline">
-									Edit content
-								</Link>
+							<div className="flex flex-wrap gap-4 border-t border-border pt-4 text-sm">
+								{site.source === "GIT" ? (
+									<Link to="/import" className="font-medium text-foreground hover:underline">
+										Edit repo settings
+									</Link>
+								) : (
+									<Link to="/create" className="font-medium text-foreground hover:underline">
+										Edit content
+									</Link>
+								)}
 								<Link to="/settings" className="font-medium text-foreground hover:underline">
 									Settings
 								</Link>
