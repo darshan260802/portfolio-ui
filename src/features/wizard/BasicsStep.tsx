@@ -10,14 +10,10 @@ import { X } from "lucide-react";
 import type { FieldErrors } from "./validation";
 import { cn } from "@/lib/utils";
 
-// "system" is a valid schema value, but no template actually branches on it
-// differently from unset/light (each template's Template.tsx checks for
-// exactly theme.mode === "dark", nothing else) — offering it here would be
-// a toggle that does nothing distinct, so this only exposes the two modes
-// templates genuinely render differently.
 const THEME_MODES = [
 	{ value: "light", label: "Light" },
 	{ value: "dark", label: "Dark" },
+	{ value: "system", label: "System" },
 ] as const;
 
 const SOCIAL_PLATFORMS: Social["platform"][] = [
@@ -102,7 +98,7 @@ export function BasicsStep({ data, onChange, errors = {}, onSave }: StepProps) {
 		onChange((d) => ({ ...d, socials: (d.socials ?? []).filter((_, i) => i !== index) }));
 	}
 
-	function setThemeMode(mode: "light" | "dark") {
+	function setThemeMode(mode: "light" | "dark" | "system") {
 		onChange((d) => ({ ...d, theme: { ...d.theme, mode } }));
 	}
 
@@ -207,17 +203,20 @@ export function BasicsStep({ data, onChange, errors = {}, onSave }: StepProps) {
 
 			<div className="flex flex-col gap-2">
 				<div className="flex items-center justify-between">
-					<Label>Social links</Label>
-					<Button type="button" variant="outline" size="sm" onClick={addSocial}>
+					<Label>Personal & social links</Label>
+					<Button type="button" variant="outline" size="sm" onClick={addSocial} disabled={socials.length >= 10}>
 						Add link
 					</Button>
 				</div>
 				{socials.map((social, i) => (
 					<div key={i} className="flex flex-col gap-1">
-						<div className="flex gap-2">
+                        <Input aria-label={`Link ${i + 1} label`} placeholder="Label, e.g. My blog" maxLength={40} value={social.label ?? ""} onChange={(e) => updateSocial(i, { label: e.target.value })} />
+                        <FieldError message={errors[`socials.${i}.label`]} />
+						<div className="flex flex-wrap gap-2">
 							<select
 								className="h-10 rounded-md border border-border bg-card px-2 text-sm capitalize"
-								value={social.platform}
+								aria-label={`Link ${i + 1} platform`}
+                                value={social.platform}
 								onChange={(e) => updateSocial(i, { platform: e.target.value as Social["platform"] })}
 							>
 								{SOCIAL_PLATFORMS.map((p) => (
@@ -227,12 +226,13 @@ export function BasicsStep({ data, onChange, errors = {}, onSave }: StepProps) {
 								))}
 							</select>
 							<Input
-								placeholder="https://…"
+								aria-label={`Link ${i + 1} URL`}
+                                type="url" placeholder="https://…"
 								value={social.url}
 								onChange={(e) => updateSocial(i, { url: e.target.value })}
 								aria-invalid={Boolean(errors[`socials.${i}.url`])}
 							/>
-							<Button type="button" variant="ghost" size="icon" onClick={() => removeSocial(i)}>
+							<Button type="button" variant="ghost" size="icon" aria-label={`Remove link ${i + 1}`} onClick={() => removeSocial(i)}>
 								<X className="h-4 w-4" />
 							</Button>
 						</div>
@@ -242,9 +242,9 @@ export function BasicsStep({ data, onChange, errors = {}, onSave }: StepProps) {
 			</div>
 
 			<div className="flex flex-col gap-1.5">
-				<Label>Appearance</Label>
+				<Label>Default appearance</Label>
 				<p className="text-xs text-muted-foreground">
-					Some templates look different in light vs. dark — pick which one yours publishes in.
+					Choose the starting appearance. Visitors can switch light and dark on the portfolio itself.
 				</p>
 				<div className="flex w-fit gap-1 rounded-md border border-border bg-card p-1">
 					{THEME_MODES.map((mode) => {

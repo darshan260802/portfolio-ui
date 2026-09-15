@@ -15,6 +15,7 @@ import { BasicsStep } from "./BasicsStep";
 import { ExperienceStep } from "./ExperienceStep";
 import { ProjectsStep } from "./ProjectsStep";
 import { SkillsStep } from "./SkillsStep";
+import { AdditionalSectionsStep } from "./AdditionalSectionsStep";
 import { ReviewStep } from "./ReviewStep";
 import { Button } from "@/components/ui/button";
 import { DraftConflictPrompt, type DraftCandidate } from "./DraftConflictPrompt";
@@ -245,7 +246,10 @@ export function CreatePage() {
 							{currentStep.id === "skills" && (
 								<SkillsStep data={data} onChange={updateData} errors={fieldErrors} />
 							)}
-							{currentStep.id === "review" && <ReviewStep templateId={templateId} data={data} />}
+							{["education", "achievements", "customSections"].includes(currentStep.id) && (
+                                <AdditionalSectionsStep kind={currentStep.id as "education" | "achievements" | "customSections"} data={data} onChange={updateData} errors={fieldErrors} />
+                            )}
+                            {currentStep.id === "review" && <ReviewStep templateId={templateId} data={data} />}
 						</motion.div>
 					</AnimatePresence>
 				</div>
